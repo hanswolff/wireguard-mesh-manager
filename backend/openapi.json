@@ -1,0 +1,6725 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "WireGuard Mesh Manager API",
+    "description": "Backend API for managing WireGuard VPN networks and devices",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health",
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Health check endpoint.\n\nReturns basic service health status with a lightweight database probe.\nThis endpoint should always return quickly.",
+        "operationId": "health_check_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Health Check Api Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "tags": [
+          "health",
+          "health"
+        ],
+        "summary": "Readiness Check",
+        "description": "Readiness check endpoint.\n\nChecks if the service is ready to serve traffic by verifying\ndatabase connectivity and other essential dependencies.",
+        "operationId": "readiness_check_api_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Readiness Check Api Ready Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "tags": [
+          "health",
+          "health"
+        ],
+        "summary": "Get Metrics",
+        "description": "Get application metrics.\n\nReturns basic metrics about API usage including request counts,\nauthentication failures, and average response times.",
+        "operationId": "get_metrics_api_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Metrics Api Metrics Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics/reset": {
+      "post": {
+        "tags": [
+          "health",
+          "health"
+        ],
+        "summary": "Reset Metrics",
+        "description": "Reset all collected metrics.\n\nThis endpoint is primarily for testing and monitoring purposes.",
+        "operationId": "reset_metrics_api_metrics_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Reset Metrics Api Metrics Reset Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/networks/": {
+      "get": {
+        "tags": [
+          "networks",
+          "networks"
+        ],
+        "summary": "List Networks",
+        "description": "List all WireGuard networks.",
+        "operationId": "list_networks_api_networks__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WireGuardNetworkResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Networks Api Networks  Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "networks",
+          "networks"
+        ],
+        "summary": "Create Network",
+        "description": "Create a new WireGuard network.",
+        "operationId": "create_network_api_networks__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WireGuardNetworkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireGuardNetworkResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/networks/{network_id}": {
+      "get": {
+        "tags": [
+          "networks",
+          "networks"
+        ],
+        "summary": "Get Network",
+        "description": "Get a specific WireGuard network by ID.",
+        "operationId": "get_network_api_networks__network_id__get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireGuardNetworkResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "networks",
+          "networks"
+        ],
+        "summary": "Update Network",
+        "description": "Update a WireGuard network.",
+        "operationId": "update_network_api_networks__network_id__put",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WireGuardNetworkUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireGuardNetworkResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "networks",
+          "networks"
+        ],
+        "summary": "Delete Network",
+        "description": "Delete a WireGuard network.",
+        "operationId": "delete_network_api_networks__network_id__delete",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Network Api Networks  Network Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/": {
+      "get": {
+        "tags": [
+          "locations",
+          "locations"
+        ],
+        "summary": "List Locations",
+        "description": "List all locations.",
+        "operationId": "list_locations_api_locations__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LocationResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Locations Api Locations  Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "locations",
+          "locations"
+        ],
+        "summary": "Create Location",
+        "description": "Create a new location.",
+        "operationId": "create_location_api_locations__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/{location_id}": {
+      "get": {
+        "tags": [
+          "locations",
+          "locations"
+        ],
+        "summary": "Get Location",
+        "description": "Get a specific location by ID.",
+        "operationId": "get_location_api_locations__location_id__get",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Location Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "locations",
+          "locations"
+        ],
+        "summary": "Update Location",
+        "description": "Update a location.",
+        "operationId": "update_location_api_locations__location_id__put",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Location Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "locations",
+          "locations"
+        ],
+        "summary": "Delete Location",
+        "description": "Delete a location.",
+        "operationId": "delete_location_api_locations__location_id__delete",
+        "parameters": [
+          {
+            "name": "location_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Location Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Location Api Locations  Location Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "List Devices",
+        "description": "List all devices.",
+        "operationId": "list_devices_api_devices__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Devices Api Devices  Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Create Device",
+        "description": "Create a new device.",
+        "operationId": "create_device_api_devices__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{device_id}": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Get Device",
+        "description": "Get a specific device by ID.",
+        "operationId": "get_device_api_devices__device_id__get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Update Device",
+        "description": "Update a device.",
+        "operationId": "update_device_api_devices__device_id__put",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Delete Device",
+        "description": "Delete a device.",
+        "operationId": "delete_device_api_devices__device_id__delete",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Device Api Devices  Device Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/network/{network_id}": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Get Devices By Network",
+        "description": "Get all devices in a specific network.",
+        "operationId": "get_devices_by_network_api_devices_network__network_id__get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceResponse"
+                  },
+                  "title": "Response Get Devices By Network Api Devices Network  Network Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/network/{network_id}/available-ips": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Get Available Ips",
+        "description": "Get available IP addresses for a network.",
+        "operationId": "get_available_ips_api_devices_network__network_id__available_ips_get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceAllocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{device_id}/config": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Get Device Config",
+        "description": "Get WireGuard configuration for a specific device.\n\nThis endpoint is used by devices to retrieve their WireGuard configuration.\nAuthentication is required via API key and IP allowlist validation.\n\nArgs:\n    device_id: ID of the device\n    format: Configuration format ('wg', 'json', 'mobile')\n    platform: Mobile platform for optimized config\n    config_service: Device configuration service\n    audit_service: Audit logging service\n    request: HTTP request for client information\n\nReturns:\n    Device configuration in requested format\n\nRaises:\n    HTTPException: If device not found or access denied",
+        "operationId": "get_device_config_api_devices__device_id__config_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Configuration format",
+              "default": "wg",
+              "title": "Format"
+            },
+            "description": "Configuration format"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Mobile platform for optimized config",
+              "title": "Platform"
+            },
+            "description": "Mobile platform for optimized config"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{device_id}/config/wg": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Get Device Config Wg",
+        "description": "Get WireGuard configuration in standard .conf format.\n\nThis is a convenience endpoint that returns the configuration as plain text\nsuitable for direct use in WireGuard clients.\n\nArgs:\n    device_id: ID of the device\n    config_service: Device configuration service\n    audit_service: Audit logging service\n    request: HTTP request for client information\n\nReturns:\n    Plain text WireGuard configuration file\n\nRaises:\n    HTTPException: If device not found or access denied",
+        "operationId": "get_device_config_wg_api_devices__device_id__config_wg_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/admin/{device_id}/config": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Admin Get Device Config",
+        "description": "Get WireGuard configuration for a specific device (admin endpoint).\n\nThis endpoint allows administrators to retrieve device configurations.\nRequires the master password to be unlocked.\n\nArgs:\n    device_id: ID of the device\n    format: Configuration format ('wg', 'json', 'mobile')\n    platform: Mobile platform for optimized config\n    config_service: Device configuration service\n    audit_service: Audit logging service\n    request: HTTP request for client information\n\nReturns:\n    Device configuration in requested format\n\nRaises:\n    HTTPException: If device not found or master password not unlocked",
+        "operationId": "admin_get_device_config_api_devices_admin__device_id__config_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Configuration format",
+              "default": "wg",
+              "title": "Format"
+            },
+            "description": "Configuration format"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Mobile platform for optimized config",
+              "title": "Platform"
+            },
+            "description": "Mobile platform for optimized config"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceConfigResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/admin/{device_id}/config/wg": {
+      "get": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Admin Get Device Config Wg",
+        "description": "Get WireGuard configuration in standard .conf format (admin endpoint).\n\nThis is a convenience endpoint that returns the configuration as plain text\nsuitable for direct use in WireGuard clients. Requires master password unlock.\n\nArgs:\n    device_id: ID of the device\n    config_service: Device configuration service\n    audit_service: Audit logging service\n    request: HTTP request for client information\n\nReturns:\n    Plain text WireGuard configuration file with no-cache headers\n\nRaises:\n    HTTPException: If device not found or master password not unlocked",
+        "operationId": "admin_get_device_config_wg_api_devices_admin__device_id__config_wg_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/generate-keys": {
+      "post": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Generate Wireguard Keys",
+        "description": "Generate a new WireGuard key pair using specified method.\n\nThis endpoint generates a new WireGuard key pair using either the\nWireGuard CLI tools (preferred for production) or the Python cryptography\nlibrary (fallback when CLI tools are not available).\n\nIf the CLI method fails, it will automatically fall back to the crypto method.\n\nArgs:\n    method: Key generation method ('cli' for WireGuard tools, 'crypto' for Python cryptography)\n\nReturns:\n    WireGuardKeyPairResponse with private and public keys\n\nRaises:\n    HTTPException: If key generation fails",
+        "operationId": "generate_wireguard_keys_api_devices_generate_keys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyGenerationMethod"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireGuardKeyPairResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{device_id}/regenerate-api-key": {
+      "post": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Regenerate Device Api Key",
+        "description": "Regenerate an API key for a device (rotate existing or create new).",
+        "operationId": "regenerate_device_api_key_api_devices__device_id__regenerate_api_key_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{device_id}/regenerate-keys": {
+      "post": {
+        "tags": [
+          "devices",
+          "devices"
+        ],
+        "summary": "Regenerate Device Keys",
+        "description": "Regenerate WireGuard keys for a specific device.\n\nThis endpoint generates a new key pair for an existing device using\neither WireGuard CLI tools or the Python cryptography library.\nThe old private key is replaced with the new encrypted key.\n\nArgs:\n    device_id: ID of the device to regenerate keys for\n    method: Key generation method ('cli' for WireGuard tools, 'crypto' for Python cryptography)\n    service: Device service\n    audit_service: Audit logging service\n    request: HTTP request for client information\n\nReturns:\n    DeviceKeysRegenerateResponse with updated device info\n\nRaises:\n    HTTPException: If device not found, master password not unlocked, or generation fails",
+        "operationId": "regenerate_device_keys_api_devices__device_id__regenerate_keys_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyGenerationMethod"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceKeysRegenerateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export/networks": {
+      "get": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Export Networks",
+        "description": "Export all networks with their locations and devices.\n\nArgs:\n    exported_by: Who is performing the export\n    description: Optional description for the export\n    db: Database session\n\nReturns:\n    ExportData containing all networks, locations, and devices",
+        "operationId": "export_networks_api_export_networks_get",
+        "parameters": [
+          {
+            "name": "exported_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "system",
+              "title": "Exported By"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Description"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Import Networks",
+        "description": "Import networks from a JSON export file.",
+        "operationId": "import_networks_api_export_networks_post",
+        "parameters": [
+          {
+            "name": "imported_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "system",
+              "title": "Imported By"
+            }
+          },
+          {
+            "name": "overwrite_existing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Overwrite Existing"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_networks_api_export_networks_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Import Networks Api Export Networks Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export": {
+      "post": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Export Networks From Request",
+        "description": "Export networks from a request body.",
+        "operationId": "export_networks_from_request_api_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export/download": {
+      "post": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Download Export",
+        "description": "Download export data as a ZIP file.",
+        "operationId": "download_export_api_export_download_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export/networks/{network_id}/configs": {
+      "get": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Export Network Configs",
+        "description": "Export all device configurations for a network as a ZIP file.\n\nArgs:\n    network_id: ID of the network to export\n    db: Database session\n    format: Configuration format ('wg', 'json', 'mobile')\n    include_preshared_keys: Whether to include preshared keys\n    master_password: Master password for decrypting private keys\n\nReturns:\n    StreamingResponse with ZIP file containing all configurations\n\nRaises:\n    HTTPException: If network not found or export fails",
+        "operationId": "export_network_configs_api_export_networks__network_id__configs_get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Network Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Configuration format",
+              "default": "wg",
+              "title": "Format"
+            },
+            "description": "Configuration format"
+          },
+          {
+            "name": "include_preshared_keys",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include preshared keys in configurations",
+              "default": false,
+              "title": "Include Preshared Keys"
+            },
+            "description": "Include preshared keys in configurations"
+          },
+          {
+            "name": "master_password",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Master password for decrypting private keys",
+              "title": "Master Password"
+            },
+            "description": "Master password for decrypting private keys"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/export/networks/schema": {
+      "get": {
+        "tags": [
+          "export",
+          "export"
+        ],
+        "summary": "Get Export Schema",
+        "description": "Get the JSON schema for export files.",
+        "operationId": "get_export_schema_api_export_networks_schema_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backup/create": {
+      "post": {
+        "tags": [
+          "backup",
+          "backup"
+        ],
+        "summary": "Create Backup",
+        "description": "Create a backup of all networks, locations, and devices.\n\nArgs:\n    password: Optional password for encryption. If empty and encrypt=True, a random password is generated.\n    description: Optional description for the backup\n    exported_by: Who is creating the backup\n    encrypt: Whether to encrypt the backup\n    db: Database session\n\nReturns:\n    BackupCreateResponse with backup data and optional password",
+        "operationId": "create_backup_api_backup_create_post",
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "",
+              "title": "Password"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Description"
+            }
+          },
+          {
+            "name": "exported_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "api",
+              "title": "Exported By"
+            }
+          },
+          {
+            "name": "encrypt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Encrypt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backup/restore": {
+      "post": {
+        "tags": [
+          "backup",
+          "backup"
+        ],
+        "summary": "Restore Backup",
+        "description": "Restore networks, locations, and devices from backup data.\n\nArgs:\n    request: Restore request containing backup data and options\n    db: Database session\n\nReturns:\n    BackupRestoreResponse with restore results",
+        "operationId": "restore_backup_api_backup_restore_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupRestoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRestoreResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backup/upload": {
+      "post": {
+        "tags": [
+          "backup",
+          "backup"
+        ],
+        "summary": "Upload Backup File",
+        "description": "Upload and optionally restore from a backup file.\n\nArgs:\n    file: Backup file to upload\n    password: Password for encrypted backup\n    overwrite_existing: Whether to overwrite existing networks\n    dry_run: If True, only parse and validate without restoring\n    db: Database session\n\nReturns:\n    JSON response with backup info or restore results",
+        "operationId": "upload_backup_file_api_backup_upload_post",
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Password"
+            }
+          },
+          {
+            "name": "overwrite_existing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Overwrite Existing"
+            }
+          },
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Dry Run"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_backup_file_api_backup_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backup/info": {
+      "get": {
+        "tags": [
+          "backup",
+          "backup"
+        ],
+        "summary": "Get Backup Info From Data",
+        "description": "Get information about backup data without restoring it.\n\nArgs:\n    backup_data: Backup data to analyze\n    password: Password for encrypted backup\n\nReturns:\n    BackupInfoResponse with backup details",
+        "operationId": "get_backup_info_from_data_api_backup_info_get",
+        "parameters": [
+          {
+            "name": "password",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Password"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Backup Data"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupInfoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/statistics": {
+      "get": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "Get Audit Statistics",
+        "description": "Get audit event statistics.",
+        "operationId": "get_audit_statistics_api_audit_statistics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Audit Statistics Api Audit Statistics Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/events": {
+      "get": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "List Audit Events",
+        "description": "List audit events with pagination and filtering.",
+        "operationId": "list_audit_events_api_audit_events_get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by network ID",
+              "title": "Network Id"
+            },
+            "description": "Filter by network ID"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by start date (ISO format)",
+              "title": "Start Date"
+            },
+            "description": "Filter by start date (ISO format)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by end date (ISO format)",
+              "title": "End Date"
+            },
+            "description": "Filter by end date (ISO format)"
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by actor name",
+              "title": "Actor"
+            },
+            "description": "Filter by actor name"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by action type",
+              "title": "Action"
+            },
+            "description": "Filter by action type"
+          },
+          {
+            "name": "resource_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by resource type",
+              "title": "Resource Type"
+            },
+            "description": "Filter by resource type"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (starts from 1)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (starts from 1)"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Number of events per page (max 1000)",
+              "default": 50,
+              "title": "Page Size"
+            },
+            "description": "Number of events per page (max 1000)"
+          },
+          {
+            "name": "include_details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include event details in response",
+              "default": false,
+              "title": "Include Details"
+            },
+            "description": "Include event details in response"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response List Audit Events Api Audit Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/cleanup": {
+      "post": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "Cleanup Expired Events",
+        "description": "Clean up expired audit events.",
+        "operationId": "cleanup_expired_events_api_audit_cleanup_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Cleanup Expired Events Api Audit Cleanup Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/export": {
+      "get": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "Export Audit Events",
+        "description": "Export audit events with optional filtering.",
+        "operationId": "export_audit_events_api_audit_export_get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by network ID",
+              "title": "Network Id"
+            },
+            "description": "Filter by network ID"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by start date (ISO format)",
+              "title": "Start Date"
+            },
+            "description": "Filter by start date (ISO format)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by end date (ISO format)",
+              "title": "End Date"
+            },
+            "description": "Filter by end date (ISO format)"
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by actor name",
+              "title": "Actor"
+            },
+            "description": "Filter by actor name"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by action type",
+              "title": "Action"
+            },
+            "description": "Filter by action type"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Export format (json or csv)",
+              "default": "json",
+              "title": "Format"
+            },
+            "description": "Export format (json or csv)"
+          },
+          {
+            "name": "include_details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include event details",
+              "default": true,
+              "title": "Include Details"
+            },
+            "description": "Include event details"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Export Audit Events Api Audit Export Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/export/download": {
+      "get": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "Download Audit Events",
+        "description": "Download audit events as a file.",
+        "operationId": "download_audit_events_api_audit_export_download_get",
+        "parameters": [
+          {
+            "name": "network_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by network ID",
+              "title": "Network Id"
+            },
+            "description": "Filter by network ID"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by start date (ISO format)",
+              "title": "Start Date"
+            },
+            "description": "Filter by start date (ISO format)"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by end date (ISO format)",
+              "title": "End Date"
+            },
+            "description": "Filter by end date (ISO format)"
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by actor name",
+              "title": "Actor"
+            },
+            "description": "Filter by actor name"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by action type",
+              "title": "Action"
+            },
+            "description": "Filter by action type"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Export format (json or csv)",
+              "default": "json",
+              "title": "Format"
+            },
+            "description": "Export format (json or csv)"
+          },
+          {
+            "name": "include_details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include event details",
+              "default": true,
+              "title": "Include Details"
+            },
+            "description": "Include event details"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/retention/info": {
+      "get": {
+        "tags": [
+          "audit",
+          "audit"
+        ],
+        "summary": "Get Retention Info",
+        "description": "Get information about audit retention settings and expired events.",
+        "operationId": "get_retention_info_api_audit_retention_info_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Retention Info Api Audit Retention Info Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config-lint": {
+      "post": {
+        "tags": [
+          "config-lint"
+        ],
+        "summary": "Lint Network Config",
+        "description": "Validate a WireGuard network configuration before deployment.\n\nThis endpoint validates all aspects of a network configuration including:\n- Network settings (CIDR, DNS, MTU, etc.)\n- Location endpoints\n- Device IP assignments and keys\n- Cross-component relationships and conflicts\n\nThe lint operation does not require any database entities to exist\nand can be used to validate configurations before creating them.\n\nArgs:\n    config: Network configuration to validate\n\nReturns:\n    ConfigLintResponse with detailed validation results",
+        "operationId": "lint_network_config_api_config_lint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfigLintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigLintResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/": {
+      "get": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "List Api Keys",
+        "description": "List API keys, optionally filtered by device ID.",
+        "operationId": "list_api_keys_api_api_keys_api_keys__get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/APIKeyResponse"
+                  },
+                  "title": "Response List Api Keys Api Api Keys Api Keys  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Create Api Key",
+        "description": "Create a new API key for a device.",
+        "operationId": "create_api_key_api_api_keys_api_keys__post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/device/{device_id}": {
+      "get": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Get Api Keys By Device",
+        "description": "Get all API keys for a specific device.",
+        "operationId": "get_api_keys_by_device_api_api_keys_api_keys_device__device_id__get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/APIKeyResponse"
+                  },
+                  "title": "Response Get Api Keys By Device Api Api Keys Api Keys Device  Device Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/{api_key_id}": {
+      "get": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Get Api Key",
+        "description": "Get a specific API key by ID.",
+        "operationId": "get_api_key_api_api_keys_api_keys__api_key_id__get",
+        "parameters": [
+          {
+            "name": "api_key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Api Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Update Api Key",
+        "description": "Update an API key.",
+        "operationId": "update_api_key_api_api_keys_api_keys__api_key_id__put",
+        "parameters": [
+          {
+            "name": "api_key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Api Key Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Delete Api Key",
+        "description": "Delete an API key permanently.",
+        "operationId": "delete_api_key_api_api_keys_api_keys__api_key_id__delete",
+        "parameters": [
+          {
+            "name": "api_key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Api Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Api Key Api Api Keys Api Keys  Api Key Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/{api_key_id}/rotate": {
+      "post": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Rotate Api Key",
+        "description": "Rotate an API key, creating a new key and invalidating the old one.",
+        "operationId": "rotate_api_key_api_api_keys_api_keys__api_key_id__rotate_post",
+        "parameters": [
+          {
+            "name": "api_key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Api Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyRotateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/device/{device_id}/regenerate": {
+      "post": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Regenerate Device Api Key",
+        "description": "Regenerate an API key for a device (rotate existing or create new).",
+        "operationId": "regenerate_device_api_key_api_api_keys_api_keys_device__device_id__regenerate_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/api-keys/api-keys/{api_key_id}/revoke": {
+      "post": {
+        "tags": [
+          "api-keys",
+          "api-keys"
+        ],
+        "summary": "Revoke Api Key",
+        "description": "Revoke (disable) an API key.",
+        "operationId": "revoke_api_key_api_api_keys_api_keys__api_key_id__revoke_post",
+        "parameters": [
+          {
+            "name": "api_key_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Api Key Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Revoke Api Key Api Api Keys Api Keys  Api Key Id  Revoke Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/key-rotation/key-rotation/rotate": {
+      "post": {
+        "tags": [
+          "key-rotation",
+          "key-rotation"
+        ],
+        "summary": "Rotate Master Password",
+        "description": "Rotate the master password and re-encrypt all stored keys.\n\nThis endpoint:\n1. Validates the current master password\n2. Re-encrypts all network and device private keys with the new password\n3. Also rotates any preshared keys on devices\n\nArgs:\n    rotate_data: Password rotation data\n    service: Key rotation service\n    audit_service: Audit service for logging\n    actor: Client actor information\n\nReturns:\n    KeyRotationStatus with rotation results\n\nRaises:\n    HTTPException: If rotation fails",
+        "operationId": "rotate_master_password_api_key_rotation_key_rotation_rotate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MasterPasswordRotate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeyRotationStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/key-rotation/key-rotation/estimate": {
+      "get": {
+        "tags": [
+          "key-rotation",
+          "key-rotation"
+        ],
+        "summary": "Get Rotation Estimate",
+        "description": "Get an estimate of items that will be affected by key rotation.\n\nReturns:\n    Dict with counts of networks, devices, and total keys",
+        "operationId": "get_rotation_estimate_api_key_rotation_key_rotation_estimate_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Rotation Estimate Api Key Rotation Key Rotation Estimate Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/key-rotation/key-rotation/validate-current-password": {
+      "post": {
+        "tags": [
+          "key-rotation",
+          "key-rotation"
+        ],
+        "summary": "Validate Current Password",
+        "description": "Validate if the provided current password is correct.\n\nThis endpoint can be used to validate the current password before\nattempting a full rotation operation.\n\nArgs:\n    password_data: Dict containing current_password\n    service: Key rotation service\n\nReturns:\n    Dict with validation result",
+        "operationId": "validate_current_password_api_key_rotation_key_rotation_validate_current_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object",
+                "title": "Password Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Validate Current Password Api Key Rotation Key Rotation Validate Current Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/key-rotation/key-rotation/validate-password": {
+      "post": {
+        "tags": [
+          "key-rotation",
+          "key-rotation"
+        ],
+        "summary": "Validate Password",
+        "description": "Validate password strength and policy compliance.\n\nThis endpoint validates a password against the security policy\nand provides strength feedback.\n\nArgs:\n    password_data: Dict containing password to validate\n\nReturns:\n    PasswordValidationResponse with validation results",
+        "operationId": "validate_password_api_key_rotation_key_rotation_validate_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object",
+                "title": "Password Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/key-rotation/key-rotation/password-policy": {
+      "get": {
+        "tags": [
+          "key-rotation",
+          "key-rotation"
+        ],
+        "summary": "Get Password Policy",
+        "description": "Get the current password policy requirements.\n\nReturns:\n    Dict with password policy information for UI display",
+        "operationId": "get_password_policy_api_key_rotation_key_rotation_password_policy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Password Policy Api Key Rotation Key Rotation Password Policy Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/unlock": {
+      "post": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Unlock Master Password",
+        "description": "Unlock the master password cache.\n\nThis endpoint caches the master password in memory for the specified TTL,\nallowing subsequent operations to use the cached password without requiring\nit to be provided in each request.\n\nIf encrypted data exists in the database, the password is validated by\nattempting to decrypt a network's private key. If the database is empty,\nany non-empty password is accepted and becomes the reference password.\n\nA successful unlock returns a master session token for admin access.\n\nArgs:\n    http_request: The HTTP request object for authentication\n    request: Unlock request containing master password and optional TTL\nReturns:\n    Unlock response with status and cache information\n\nRaises:\n    HTTPException: If master password is invalid",
+        "operationId": "unlock_master_password_api_master_password_master_password_unlock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MasterPasswordUnlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterPasswordUnlockResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/lock": {
+      "post": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Lock Master Password",
+        "description": "Manually lock the master password cache and clear cached data.\n\nThis endpoint immediately locks the cache and securely clears any\ncached master password from memory.\n\nRequires master session authentication.",
+        "operationId": "lock_master_password_api_master_password_master_password_lock_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterPasswordUnlockResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/status": {
+      "get": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Get Master Password Status",
+        "description": "Get the current status of the master password cache.\n\nThis endpoint provides monitoring information about the cache state\nwithout exposing any sensitive data.\n\nRequires master session authentication.",
+        "operationId": "get_master_password_status_api_master_password_master_password_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterPasswordStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/extend-ttl": {
+      "post": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Extend Master Password Ttl",
+        "description": "Extend the TTL of the current master password cache.\n\nThis endpoint extends the time-to-live of the cached master password,\nuseful for long-running operations.\n\nRequires master session authentication.",
+        "operationId": "extend_master_password_ttl_api_master_password_master_password_extend_ttl_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MasterPasswordExtendTTLRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasterPasswordExtendTTLResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/refresh-access": {
+      "post": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Refresh Master Password Access",
+        "description": "Refresh the access time of the master password cache.\n\nThis endpoint updates the last access time without incrementing\nthe access counter, useful for heartbeat operations.\n\nRequires master session authentication.\n\nArgs:\n    http_request: The HTTP request object for authentication\n\nReturns:\n    Refresh response",
+        "operationId": "refresh_master_password_access_api_master_password_master_password_refresh_access_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Refresh Master Password Access Api Master Password Master Password Refresh Access Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/sessions": {
+      "get": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Get All Sessions",
+        "description": "Get status of all sessions (for monitoring).\n\nRequires master session authentication.\n\nReturns:\n    Dictionary with session statuses and count",
+        "operationId": "get_all_sessions_api_master_password_master_password_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Get All Sessions Api Master Password Master Password Sessions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/sessions/{session_id}": {
+      "delete": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Remove Session",
+        "description": "Remove a specific session and lock its cache.\n\nRequires master session authentication.\n\nArgs:\n    http_request: The HTTP request object for authentication\n    session_id: Session ID to remove\n\nReturns:\n    Removal response",
+        "operationId": "remove_session_api_master_password_master_password_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Remove Session Api Master Password Master Password Sessions  Session Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/master-password/master-password/sessions/cleanup": {
+      "post": {
+        "tags": [
+          "master-password",
+          "master-password"
+        ],
+        "summary": "Cleanup Expired Sessions",
+        "description": "Clean up expired session caches.\n\nRequires master session authentication.\n\nReturns:\n    Cleanup response with number of sessions removed",
+        "operationId": "cleanup_expired_sessions_api_master_password_master_password_sessions_cleanup_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "object",
+                  "title": "Response Cleanup Expired Sessions Api Master Password Master Password Sessions Cleanup Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings/settings": {
+      "get": {
+        "tags": [
+          "settings",
+          "settings"
+        ],
+        "summary": "Get operational settings",
+        "description": "Retrieve current operational settings from the database or fallback to defaults.",
+        "operationId": "get_operational_settings_api_settings_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationalSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "settings",
+          "settings"
+        ],
+        "summary": "Update operational settings",
+        "description": "Update operational settings. Only provided fields will be updated.",
+        "operationId": "update_operational_settings_api_settings_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperationalSettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationalSettingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/csrf/token": {
+      "get": {
+        "tags": [
+          "csrf",
+          "csrf"
+        ],
+        "summary": "Get Csrf Token",
+        "description": "Get CSRF token for frontend forms.\n\nReturns a placeholder response. The actual token is set by the\nmiddleware as a secure cookie with SameSite=Strict.\nFrontend should read the token from the cookie and include it\nin the X-CSRF-Token header for state-changing requests.",
+        "operationId": "get_csrf_token_api_csrf_token_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CSRFTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/csrf/settings": {
+      "get": {
+        "tags": [
+          "csrf",
+          "csrf"
+        ],
+        "summary": "Get Security Settings",
+        "description": "Get current security-related operational settings.\n\nReturns configuration values that the frontend needs for security features.",
+        "operationId": "get_security_settings_api_csrf_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecuritySettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/": {
+      "get": {
+        "summary": "Api Root",
+        "description": "API root endpoint.",
+        "operationId": "api_root_api__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Api Root Api  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Root endpoint.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIKeyCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "allowed_ip_ranges": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Ip Ranges"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "device_id"
+        ],
+        "title": "APIKeyCreate",
+        "description": "Schema for creating a new API key."
+      },
+      "APIKeyCreateResponse": {
+        "properties": {
+          "api_key": {
+            "$ref": "#/components/schemas/APIKeyResponse"
+          },
+          "key_value": {
+            "type": "string",
+            "title": "Key Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api_key",
+          "key_value"
+        ],
+        "title": "APIKeyCreateResponse",
+        "description": "Schema for API key creation response."
+      },
+      "APIKeyResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "allowed_ip_ranges": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Ip Ranges"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "network_id": {
+            "type": "string",
+            "title": "Network Id"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "device_id",
+          "network_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "APIKeyResponse",
+        "description": "Schema for API key responses."
+      },
+      "APIKeyRotateResponse": {
+        "properties": {
+          "old_key": {
+            "$ref": "#/components/schemas/APIKeyResponse"
+          },
+          "new_key": {
+            "$ref": "#/components/schemas/APIKeyCreateResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_key",
+          "new_key"
+        ],
+        "title": "APIKeyRotateResponse",
+        "description": "Schema for API key rotation response."
+      },
+      "APIKeyUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "allowed_ip_ranges": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Ip Ranges"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "title": "APIKeyUpdate",
+        "description": "Schema for updating an API key."
+      },
+      "BackupCreateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "exported_by": {
+            "type": "string",
+            "title": "Exported By"
+          },
+          "encrypted": {
+            "type": "boolean",
+            "title": "Encrypted"
+          },
+          "networks_count": {
+            "type": "integer",
+            "title": "Networks Count"
+          },
+          "locations_count": {
+            "type": "integer",
+            "title": "Locations Count"
+          },
+          "devices_count": {
+            "type": "integer",
+            "title": "Devices Count"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "backup_data": {
+            "type": "object",
+            "title": "Backup Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "exported_by",
+          "encrypted",
+          "networks_count",
+          "locations_count",
+          "devices_count",
+          "backup_data"
+        ],
+        "title": "BackupCreateResponse",
+        "description": "Response model for backup creation."
+      },
+      "BackupInfoResponse": {
+        "properties": {
+          "encrypted": {
+            "type": "boolean",
+            "title": "Encrypted"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "exported_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exported At"
+          },
+          "exported_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exported By"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "networks_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Networks Count"
+          },
+          "locations_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locations Count"
+          },
+          "devices_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices Count"
+          },
+          "networks": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Networks",
+            "default": []
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "encrypted",
+          "version"
+        ],
+        "title": "BackupInfoResponse",
+        "description": "Response model for backup information."
+      },
+      "BackupRestoreRequest": {
+        "properties": {
+          "backup_data": {
+            "type": "object",
+            "title": "Backup Data"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "overwrite_existing": {
+            "type": "boolean",
+            "title": "Overwrite Existing",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "backup_data"
+        ],
+        "title": "BackupRestoreRequest",
+        "description": "Request model for backup restoration."
+      },
+      "BackupRestoreResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "networks_created": {
+            "type": "integer",
+            "title": "Networks Created",
+            "default": 0
+          },
+          "networks_updated": {
+            "type": "integer",
+            "title": "Networks Updated",
+            "default": 0
+          },
+          "locations_created": {
+            "type": "integer",
+            "title": "Locations Created",
+            "default": 0
+          },
+          "devices_created": {
+            "type": "integer",
+            "title": "Devices Created",
+            "default": 0
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "title": "BackupRestoreResponse",
+        "description": "Response model for backup restoration."
+      },
+      "Body_import_networks_api_export_networks_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_networks_api_export_networks_post"
+      },
+      "Body_upload_backup_file_api_backup_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_backup_file_api_backup_upload_post"
+      },
+      "CSRFTokenResponse": {
+        "properties": {
+          "csrf_token": {
+            "type": "string",
+            "title": "Csrf Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "csrf_token"
+        ],
+        "title": "CSRFTokenResponse",
+        "description": "Response model for CSRF token endpoint."
+      },
+      "Category": {
+        "type": "string",
+        "enum": [
+          "network",
+          "location",
+          "device",
+          "general"
+        ],
+        "title": "Category",
+        "description": "Issue categories."
+      },
+      "ConfigLintRequest": {
+        "properties": {
+          "network_cidr": {
+            "type": "string",
+            "title": "Network Cidr",
+            "description": "Network CIDR notation (e.g., 10.0.0.0/24)"
+          },
+          "dns_servers": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Servers",
+            "description": "Comma-separated DNS servers"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu",
+            "description": "Maximum transmission unit (576-9000 bytes)"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive",
+            "description": "Persistent keepalive interval in seconds (0-86400)"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key",
+            "description": "WireGuard public key (base64)"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationLint"
+            },
+            "type": "array",
+            "title": "Locations",
+            "default": []
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/DeviceLint"
+            },
+            "type": "array",
+            "title": "Devices",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "network_cidr"
+        ],
+        "title": "ConfigLintRequest",
+        "description": "Request data for config lint validation."
+      },
+      "ConfigLintResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "issue_count": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Issue Count",
+            "default": {}
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/LintIssue"
+            },
+            "type": "array",
+            "title": "Issues",
+            "default": []
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "summary"
+        ],
+        "title": "ConfigLintResponse",
+        "description": "Response data for config lint validation."
+      },
+      "DeviceAllocationResponse": {
+        "properties": {
+          "allocated_ip": {
+            "type": "string",
+            "title": "Allocated Ip"
+          },
+          "available_ips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Ips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allocated_ip",
+          "available_ips"
+        ],
+        "title": "DeviceAllocationResponse",
+        "description": "Schema for IP allocation response."
+      },
+      "DeviceConfigResponse": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "title": "Device Id"
+          },
+          "device_name": {
+            "type": "string",
+            "title": "Device Name"
+          },
+          "network_name": {
+            "type": "string",
+            "title": "Network Name"
+          },
+          "configuration": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/DeviceConfiguration"
+              },
+              {
+                "$ref": "#/components/schemas/MobileConfig"
+              }
+            ],
+            "title": "Configuration"
+          },
+          "format": {
+            "type": "string",
+            "title": "Format"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "device_id",
+          "device_name",
+          "network_name",
+          "configuration",
+          "format",
+          "created_at"
+        ],
+        "title": "DeviceConfigResponse",
+        "description": "Device configuration response.",
+        "example": {
+          "configuration": "[Interface]\nPrivateKey = ...\nAddress = 10.0.0.2/24\n\n[Peer]\nPublicKey = ...\nAllowedIPs = 0.0.0.0/0\nEndpoint = vpn.example.com:51820",
+          "created_at": "2024-01-01T12:00:00Z",
+          "device_id": "123e4567-e89b-12d3-a456-426614174000",
+          "device_name": "iPhone 15",
+          "format": "wg",
+          "network_name": "Company VPN"
+        }
+      },
+      "DeviceConfiguration": {
+        "properties": {
+          "interface": {
+            "$ref": "#/components/schemas/WireGuardInterfaceConfig"
+          },
+          "peers": {
+            "items": {
+              "$ref": "#/components/schemas/WireGuardPeerConfig"
+            },
+            "type": "array",
+            "title": "Peers",
+            "description": "List of peer configurations for mesh topology"
+          }
+        },
+        "type": "object",
+        "required": [
+          "interface",
+          "peers"
+        ],
+        "title": "DeviceConfiguration",
+        "description": "Complete device configuration for mesh topology.\n\nContains interface configuration and a list of peer configurations\nrepresenting all other devices in the network.",
+        "example": {
+          "interface": {
+            "address": "10.0.0.2/24",
+            "dns": "8.8.8.8,8.8.4.4",
+            "private_key": "abc123..."
+          },
+          "peers": [
+            {
+              "allowed_ips": "10.0.0.3/32",
+              "endpoint": "device3.example.com:51820",
+              "persistent_keepalive": 25,
+              "public_key": "def456..."
+            },
+            {
+              "allowed_ips": "10.0.0.4/32",
+              "endpoint": "192.168.1.10:51820",
+              "persistent_keepalive": 25,
+              "public_key": "ghi789..."
+            }
+          ]
+        }
+      },
+      "DeviceCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          },
+          "network_id": {
+            "type": "string",
+            "title": "Network Id"
+          },
+          "location_id": {
+            "type": "string",
+            "title": "Location Id"
+          },
+          "wireguard_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wireguard Ip"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 56,
+                "minLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "private_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 56,
+                "minLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key"
+          },
+          "preshared_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "network_id",
+          "location_id"
+        ],
+        "title": "DeviceCreate",
+        "description": "Schema for creating a new device."
+      },
+      "DeviceExport": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "wireguard_ip": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$",
+            "title": "Wireguard Ip"
+          },
+          "private_key_encrypted": {
+            "type": "string",
+            "title": "Private Key Encrypted"
+          },
+          "public_key": {
+            "type": "string",
+            "maxLength": 56,
+            "minLength": 44,
+            "title": "Public Key"
+          },
+          "preshared_key_encrypted": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key Encrypted"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "location_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Location Name"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional interface properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "wireguard_ip",
+          "private_key_encrypted",
+          "public_key",
+          "location_name"
+        ],
+        "title": "DeviceExport",
+        "description": "Device data for export."
+      },
+      "DeviceKeysRegenerateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key"
+          },
+          "private_key_encrypted": {
+            "type": "boolean",
+            "title": "Private Key Encrypted",
+            "description": "Whether the private key is encrypted in storage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "public_key",
+          "private_key_encrypted"
+        ],
+        "title": "DeviceKeysRegenerateResponse",
+        "description": "Schema for device key regeneration response."
+      },
+      "DeviceLint": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "wireguard_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wireguard Ip"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "preshared_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DeviceLint",
+        "description": "Device data for config lint validation."
+      },
+      "DeviceResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "network_id": {
+            "type": "string",
+            "title": "Network Id"
+          },
+          "location_id": {
+            "type": "string",
+            "title": "Location Id"
+          },
+          "wireguard_ip": {
+            "type": "string",
+            "title": "Wireguard Ip"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key"
+          },
+          "preshared_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "network_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Name"
+          },
+          "location_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "api_key_last_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Last Used"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "network_id",
+          "location_id",
+          "wireguard_ip",
+          "public_key",
+          "preshared_key",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DeviceResponse",
+        "description": "Schema for device responses."
+      },
+      "DeviceUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "wireguard_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wireguard Ip"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 56,
+                "minLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "private_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 56,
+                "minLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key"
+          },
+          "preshared_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Additional WireGuard interface properties as key-value pairs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties"
+          }
+        },
+        "type": "object",
+        "title": "DeviceUpdate",
+        "description": "Schema for updating a device."
+      },
+      "ExportData": {
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/ExportMetadata"
+          },
+          "networks": {
+            "items": {
+              "$ref": "#/components/schemas/WireGuardNetworkExport"
+            },
+            "type": "array",
+            "title": "Networks",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "metadata"
+        ],
+        "title": "ExportData",
+        "description": "Complete export data structure.",
+        "example": {
+          "metadata": {
+            "description": "Backup of production networks",
+            "exported_at": "2024-01-01T00:00:00Z",
+            "exported_by": "admin@example.com",
+            "version": "1.0"
+          },
+          "networks": []
+        }
+      },
+      "ExportMetadata": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0"
+          },
+          "exported_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Exported At"
+          },
+          "exported_by": {
+            "type": "string",
+            "title": "Exported By"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exported_at",
+          "exported_by"
+        ],
+        "title": "ExportMetadata",
+        "description": "Metadata for export files."
+      },
+      "ExportRequest": {
+        "properties": {
+          "network_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Ids"
+          },
+          "include_configs": {
+            "type": "boolean",
+            "title": "Include Configs",
+            "default": true
+          },
+          "include_api_keys": {
+            "type": "boolean",
+            "title": "Include Api Keys",
+            "default": false
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "zip"
+            ],
+            "title": "Format",
+            "default": "json"
+          }
+        },
+        "type": "object",
+        "title": "ExportRequest",
+        "description": "Request schema for exporting networks."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "KeyGenerationMethod": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "cli",
+              "crypto"
+            ],
+            "title": "Method",
+            "description": "Method used to generate keys: 'cli' uses WireGuard tools, 'crypto' uses Python cryptography"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "KeyGenerationMethod",
+        "description": "Schema for key generation method."
+      },
+      "KeyRotationStatus": {
+        "properties": {
+          "total_networks": {
+            "type": "integer",
+            "title": "Total Networks"
+          },
+          "total_devices": {
+            "type": "integer",
+            "title": "Total Devices"
+          },
+          "rotated_networks": {
+            "type": "integer",
+            "title": "Rotated Networks"
+          },
+          "rotated_devices": {
+            "type": "integer",
+            "title": "Rotated Devices"
+          },
+          "failed_networks": {
+            "type": "integer",
+            "title": "Failed Networks"
+          },
+          "failed_devices": {
+            "type": "integer",
+            "title": "Failed Devices"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_networks",
+          "total_devices",
+          "rotated_networks",
+          "rotated_devices",
+          "failed_networks",
+          "failed_devices",
+          "errors"
+        ],
+        "title": "KeyRotationStatus",
+        "description": "Schema for key rotation status response."
+      },
+      "LintIssue": {
+        "properties": {
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "severity",
+          "category",
+          "field",
+          "message"
+        ],
+        "title": "LintIssue",
+        "description": "Single validation issue found during linting."
+      },
+      "LocationCreate": {
+        "properties": {
+          "network_id": {
+            "type": "string",
+            "title": "Network Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint",
+            "description": "External endpoint hostname or IP address"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint",
+            "description": "Internal endpoint in format host:port"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "network_id",
+          "name"
+        ],
+        "title": "LocationCreate",
+        "description": "Schema for creating a location."
+      },
+      "LocationExport": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional interface properties"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "LocationExport",
+        "description": "Location data for export."
+      },
+      "LocationLint": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "LocationLint",
+        "description": "Location data for config lint validation."
+      },
+      "LocationResponse": {
+        "properties": {
+          "network_id": {
+            "type": "string",
+            "title": "Network Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint",
+            "description": "External endpoint hostname or IP address"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint",
+            "description": "Internal endpoint in format host:port"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "network_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Name"
+          },
+          "device_count": {
+            "type": "integer",
+            "title": "Device Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "network_id",
+          "name",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LocationResponse",
+        "description": "Schema for location response."
+      },
+      "LocationUpdate": {
+        "properties": {
+          "network_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "external_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Endpoint",
+            "description": "External endpoint hostname or IP address"
+          },
+          "internal_endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal Endpoint",
+            "description": "Internal endpoint in format host:port"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Additional WireGuard interface properties as key-value pairs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties"
+          }
+        },
+        "type": "object",
+        "title": "LocationUpdate",
+        "description": "Schema for updating a location."
+      },
+      "MasterPasswordExtendTTLRequest": {
+        "properties": {
+          "additional_hours": {
+            "type": "number",
+            "maximum": 24.0,
+            "minimum": 0.1,
+            "title": "Additional Hours",
+            "description": "Additional hours to extend TTL by",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "title": "MasterPasswordExtendTTLRequest",
+        "description": "Request model for extending master password cache TTL."
+      },
+      "MasterPasswordExtendTTLResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Whether TTL was extended"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Status message"
+          },
+          "new_expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Expires At",
+            "description": "New expiration time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "MasterPasswordExtendTTLResponse",
+        "description": "Response model for TTL extension operations."
+      },
+      "MasterPasswordRotate": {
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Current Password",
+            "description": "Current master password"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "New Password",
+            "description": "New master password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Confirm Password",
+            "description": "Confirm new master password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current_password",
+          "new_password",
+          "confirm_password"
+        ],
+        "title": "MasterPasswordRotate",
+        "description": "Schema for rotating master password."
+      },
+      "MasterPasswordStatusResponse": {
+        "properties": {
+          "is_unlocked": {
+            "type": "boolean",
+            "title": "Is Unlocked",
+            "description": "Whether cache is unlocked"
+          },
+          "password_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Id",
+            "description": "ID of cached password"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At",
+            "description": "When cache expires (absolute)"
+          },
+          "idle_expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idle Expires At",
+            "description": "When cache expires (idle timeout)"
+          },
+          "access_count": {
+            "type": "integer",
+            "title": "Access Count",
+            "description": "Number of times password was accessed"
+          },
+          "last_access": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Access",
+            "description": "Last access time"
+          },
+          "ttl_seconds": {
+            "type": "number",
+            "title": "Ttl Seconds",
+            "description": "Time to live in seconds"
+          },
+          "idle_ttl_seconds": {
+            "type": "number",
+            "title": "Idle Ttl Seconds",
+            "description": "Idle time to live in seconds"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id",
+            "description": "Session ID (if session-based)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_unlocked",
+          "access_count",
+          "ttl_seconds",
+          "idle_ttl_seconds"
+        ],
+        "title": "MasterPasswordStatusResponse",
+        "description": "Response model for master password cache status."
+      },
+      "MasterPasswordUnlockRequest": {
+        "properties": {
+          "master_password": {
+            "type": "string",
+            "title": "Master Password",
+            "description": "Master password to cache"
+          },
+          "ttl_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ttl Hours",
+            "description": "Custom TTL in hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "master_password"
+        ],
+        "title": "MasterPasswordUnlockRequest",
+        "description": "Request model for unlocking the master password cache."
+      },
+      "MasterPasswordUnlockResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Whether unlock was successful"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Status message"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At",
+            "description": "When the cache expires"
+          },
+          "password_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Id",
+            "description": "ID of the cached password"
+          },
+          "session_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Token",
+            "description": "Master session token for subsequent requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "MasterPasswordUnlockResponse",
+        "description": "Response model for master password unlock operations."
+      },
+      "MobileConfig": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Configuration name for mobile app"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses",
+            "description": "IP addresses"
+          },
+          "dns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dns",
+            "description": "DNS servers"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9000.0,
+                "minimum": 576.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key",
+            "description": "Peer public key"
+          },
+          "allowed_ips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Ips",
+            "description": "Allowed IP ranges"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint",
+            "description": "Server endpoint"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86400.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "addresses",
+          "dns",
+          "public_key",
+          "allowed_ips"
+        ],
+        "title": "MobileConfig",
+        "description": "Mobile-specific configuration."
+      },
+      "OperationalSettingsResponse": {
+        "properties": {
+          "max_request_size": {
+            "type": "integer",
+            "title": "Max Request Size"
+          },
+          "request_timeout": {
+            "type": "integer",
+            "title": "Request Timeout"
+          },
+          "max_json_depth": {
+            "type": "integer",
+            "title": "Max Json Depth"
+          },
+          "max_string_length": {
+            "type": "integer",
+            "title": "Max String Length"
+          },
+          "max_items_per_array": {
+            "type": "integer",
+            "title": "Max Items Per Array"
+          },
+          "rate_limit_api_key_window": {
+            "type": "integer",
+            "title": "Rate Limit Api Key Window"
+          },
+          "rate_limit_api_key_max_requests": {
+            "type": "integer",
+            "title": "Rate Limit Api Key Max Requests"
+          },
+          "rate_limit_ip_window": {
+            "type": "integer",
+            "title": "Rate Limit Ip Window"
+          },
+          "rate_limit_ip_max_requests": {
+            "type": "integer",
+            "title": "Rate Limit Ip Max Requests"
+          },
+          "audit_retention_days": {
+            "type": "integer",
+            "title": "Audit Retention Days"
+          },
+          "audit_export_batch_size": {
+            "type": "integer",
+            "title": "Audit Export Batch Size"
+          },
+          "master_password_ttl_hours": {
+            "type": "number",
+            "title": "Master Password Ttl Hours"
+          },
+          "master_password_idle_timeout_minutes": {
+            "type": "number",
+            "title": "Master Password Idle Timeout Minutes"
+          },
+          "master_password_per_user_session": {
+            "type": "boolean",
+            "title": "Master Password Per User Session"
+          },
+          "trusted_proxies": {
+            "type": "string",
+            "title": "Trusted Proxies"
+          },
+          "cors_origins": {
+            "type": "string",
+            "title": "Cors Origins"
+          },
+          "cors_allow_credentials": {
+            "type": "boolean",
+            "title": "Cors Allow Credentials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_request_size",
+          "request_timeout",
+          "max_json_depth",
+          "max_string_length",
+          "max_items_per_array",
+          "rate_limit_api_key_window",
+          "rate_limit_api_key_max_requests",
+          "rate_limit_ip_window",
+          "rate_limit_ip_max_requests",
+          "audit_retention_days",
+          "audit_export_batch_size",
+          "master_password_ttl_hours",
+          "master_password_idle_timeout_minutes",
+          "master_password_per_user_session",
+          "trusted_proxies",
+          "cors_origins",
+          "cors_allow_credentials"
+        ],
+        "title": "OperationalSettingsResponse",
+        "description": "Response schema for operational settings."
+      },
+      "OperationalSettingsUpdate": {
+        "properties": {
+          "max_request_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Request Size"
+          },
+          "request_timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Timeout"
+          },
+          "max_json_depth": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Json Depth"
+          },
+          "max_string_length": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max String Length"
+          },
+          "max_items_per_array": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Items Per Array"
+          },
+          "rate_limit_api_key_window": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Api Key Window"
+          },
+          "rate_limit_api_key_max_requests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Api Key Max Requests"
+          },
+          "rate_limit_ip_window": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Ip Window"
+          },
+          "rate_limit_ip_max_requests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Ip Max Requests"
+          },
+          "audit_retention_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Retention Days"
+          },
+          "audit_export_batch_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Export Batch Size"
+          },
+          "master_password_ttl_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Master Password Ttl Hours"
+          },
+          "master_password_idle_timeout_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Master Password Idle Timeout Minutes"
+          },
+          "master_password_per_user_session": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Master Password Per User Session"
+          },
+          "trusted_proxies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trusted Proxies"
+          },
+          "cors_origins": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cors Origins"
+          },
+          "cors_allow_credentials": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cors Allow Credentials"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "OperationalSettingsUpdate",
+        "description": "Request schema for updating operational settings."
+      },
+      "PasswordValidationResponse": {
+        "properties": {
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          },
+          "strength": {
+            "type": "integer",
+            "title": "Strength"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          },
+          "feedback": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Feedback"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_valid",
+          "strength",
+          "score",
+          "feedback"
+        ],
+        "title": "PasswordValidationResponse",
+        "description": "Schema for password validation response."
+      },
+      "SecurityHeadersResponse": {
+        "properties": {
+          "contentTypeOptions": {
+            "type": "string",
+            "title": "Contenttypeoptions"
+          },
+          "frameOptions": {
+            "type": "string",
+            "title": "Frameoptions"
+          },
+          "xssProtection": {
+            "type": "string",
+            "title": "Xssprotection"
+          },
+          "referrerPolicy": {
+            "type": "string",
+            "title": "Referrerpolicy"
+          },
+          "contentSecurityPolicy": {
+            "type": "string",
+            "title": "Contentsecuritypolicy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contentTypeOptions",
+          "frameOptions",
+          "xssProtection",
+          "referrerPolicy",
+          "contentSecurityPolicy"
+        ],
+        "title": "SecurityHeadersResponse",
+        "description": "Response model for security headers."
+      },
+      "SecuritySettingsResponse": {
+        "properties": {
+          "cors_origins": {
+            "type": "string",
+            "title": "Cors Origins"
+          },
+          "csrf_protection_enabled": {
+            "type": "boolean",
+            "title": "Csrf Protection Enabled"
+          },
+          "trusted_proxies": {
+            "type": "string",
+            "title": "Trusted Proxies"
+          },
+          "security_headers": {
+            "$ref": "#/components/schemas/SecurityHeadersResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cors_origins",
+          "csrf_protection_enabled",
+          "trusted_proxies",
+          "security_headers"
+        ],
+        "title": "SecuritySettingsResponse",
+        "description": "Response model for security settings endpoint."
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning",
+          "info"
+        ],
+        "title": "Severity",
+        "description": "Issue severity levels."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WireGuardInterfaceConfig": {
+        "properties": {
+          "private_key": {
+            "type": "string",
+            "title": "Private Key",
+            "description": "Device's private key"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "description": "Device's WireGuard IP address with CIDR"
+          },
+          "dns": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns",
+            "description": "DNS servers for the device"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9000.0,
+                "minimum": 576.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu",
+            "description": "MTU for the device"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional interface properties as key-value pairs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "private_key",
+          "address"
+        ],
+        "title": "WireGuardInterfaceConfig",
+        "description": "WireGuard interface configuration."
+      },
+      "WireGuardKeyPairResponse": {
+        "properties": {
+          "private_key": {
+            "type": "string",
+            "title": "Private Key",
+            "description": "The generated private key (base64-encoded)"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key",
+            "description": "The generated public key (base64-encoded)"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "cli",
+              "crypto"
+            ],
+            "title": "Method",
+            "description": "Method used to generate the keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "private_key",
+          "public_key",
+          "method"
+        ],
+        "title": "WireGuardKeyPairResponse",
+        "description": "Schema for WireGuard key pair generation response."
+      },
+      "WireGuardNetworkCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "network_cidr": {
+            "type": "string",
+            "title": "Network Cidr",
+            "description": "Network CIDR notation (e.g., 10.0.0.0/24)"
+          },
+          "dns_servers": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Servers",
+            "description": "Comma-separated DNS servers (IP or domain)"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu",
+            "description": "Maximum transmission unit (576-9000 bytes)"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive",
+            "description": "Persistent keepalive interval in seconds (0-86400)"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "network_cidr"
+        ],
+        "title": "WireGuardNetworkCreate",
+        "description": "Schema for creating a WireGuard network."
+      },
+      "WireGuardNetworkExport": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "network_cidr": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+$",
+            "title": "Network Cidr"
+          },
+          "dns_servers": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Servers"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 9000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86400.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive"
+          },
+          "private_key_encrypted": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Private Key Encrypted"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 56,
+                "minLength": 44
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "preshared_key_encrypted": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key Encrypted"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional interface properties"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationExport"
+            },
+            "type": "array",
+            "title": "Locations",
+            "default": []
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/DeviceExport"
+            },
+            "type": "array",
+            "title": "Devices",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "network_cidr"
+        ],
+        "title": "WireGuardNetworkExport",
+        "description": "Complete network data for export.\n\nFor mesh topology, networks do not have their own WireGuard keys.\nKey fields are optional to support both mesh (no keys) and legacy formats."
+      },
+      "WireGuardNetworkResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "network_cidr": {
+            "type": "string",
+            "title": "Network Cidr",
+            "description": "Network CIDR notation (e.g., 10.0.0.0/24)"
+          },
+          "dns_servers": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Servers",
+            "description": "Comma-separated DNS servers (IP or domain)"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu",
+            "description": "Maximum transmission unit (576-9000 bytes)"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive",
+            "description": "Persistent keepalive interval in seconds (0-86400)"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties",
+            "description": "Additional WireGuard interface properties as key-value pairs"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "location_count": {
+            "type": "integer",
+            "title": "Location Count",
+            "default": 0
+          },
+          "device_count": {
+            "type": "integer",
+            "title": "Device Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "network_cidr",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "WireGuardNetworkResponse",
+        "description": "Schema for WireGuard network response."
+      },
+      "WireGuardNetworkUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "network_cidr": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Network CIDR notation (e.g., 10.0.0.0/24)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Network Cidr"
+          },
+          "dns_servers": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated DNS servers (IP or domain)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dns Servers"
+          },
+          "mtu": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "Maximum transmission unit (576-9000 bytes)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mtu"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "description": "Persistent keepalive interval in seconds (0-86400)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive"
+          },
+          "interface_properties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "description": "Additional WireGuard interface properties as key-value pairs"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Properties"
+          }
+        },
+        "type": "object",
+        "title": "WireGuardNetworkUpdate",
+        "description": "Schema for updating a WireGuard network."
+      },
+      "WireGuardPeerConfig": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Peer device name"
+          },
+          "public_key": {
+            "type": "string",
+            "title": "Public Key",
+            "description": "Peer's public key"
+          },
+          "allowed_ips": {
+            "type": "string",
+            "title": "Allowed Ips",
+            "description": "Allowed IPs for this peer"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint",
+            "description": "Peer endpoint (host:port)"
+          },
+          "persistent_keepalive": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 86400.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persistent Keepalive",
+            "description": "Persistent keepalive interval"
+          },
+          "preshared_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preshared Key",
+            "description": "Optional preshared key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "public_key",
+          "allowed_ips"
+        ],
+        "title": "WireGuardPeerConfig",
+        "description": "WireGuard peer configuration (device-to-device connection for mesh topology).",
+        "example": {
+          "allowed_ips": "10.0.0.3/32",
+          "endpoint": "device3.example.com:51820",
+          "name": "Peer Device 1",
+          "persistent_keepalive": 25,
+          "public_key": "def456..."
+        }
+      }
+    }
+  }
+}

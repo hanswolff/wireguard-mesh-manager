@@ -1,0 +1,603 @@
+openapi: 3.0.3
+info:
+  title: WireGuard Mesh Manager - Device Configuration API
+  description: |
+    API for retrieving WireGuard device configurations.
+
+    ## Authentication
+    - **Device endpoints**: Require API key via `Authorization: Bearer <api-key>` and IP allowlist validation
+    - **Admin endpoints**: Require master session token and master password unlock
+
+    ## Rate Limiting
+    - 60 requests/minute per API key
+    - 10 requests/minute per source IP
+
+    ## Security Headers
+    All responses include no-cache headers for security.
+  version: 1.0.0
+  contact:
+    name: WireGuard Mesh Manager
+    url: https://github.com/hanswolff/wireguard-mesh-manager
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://<your-domain>/api
+    description: Self-hosted production server
+  - url: http://localhost:8000/api
+    description: Development server
+
+paths:
+  /devices/{device_id}/config:
+    get:
+      tags:
+        - Device Configuration
+      summary: Get device configuration
+      description: |
+        Retrieves WireGuard configuration for a specific device.
+
+        **Device Authentication**: Requires API key and IP allowlist validation.
+
+        Supported formats:
+        - `wg`: Standard WireGuard configuration object
+        - `json`: Full JSON configuration with interface and peer sections
+        - `mobile`: Mobile-optimized configuration format
+      operationId: getDeviceConfig
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the device
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        - name: format
+          in: query
+          description: Configuration format
+          required: false
+          schema:
+            type: string
+            enum: [wg, json, mobile]
+            default: wg
+          example: 'json'
+        - name: platform
+          in: query
+          description: Mobile platform for optimized config (used with format=mobile)
+          required: false
+          schema:
+            type: string
+            enum: [ios, android, windows, macos, linux]
+          example: 'ios'
+      security:
+        - DeviceAuth: []
+      responses:
+        '200':
+          description: Device configuration retrieved successfully
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: 'no-store, no-cache, must-revalidate, private'
+            X-Content-Type-Options:
+              schema:
+                type: string
+              description: 'nosniff'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceConfigResponse'
+              examples:
+                json_format:
+                  summary: JSON format response
+                  value:
+                    device_id: '123e4567-e89b-12d3-a456-426614174000'
+                    device_name: 'iPhone 15'
+                    network_name: 'Company VPN'
+                    configuration:
+                      interface:
+                        private_key: 'abc123...' # pragma: allowlist secret
+                        address: '10.0.0.2/24'
+                        dns: '8.8.8.8,8.8.4.4'
+                        mtu: 1420
+                      peer:
+                        public_key: 'def456...' # pragma: allowlist secret
+                        allowed_ips: '0.0.0.0/0'
+                        endpoint: 'vpn.example.com:51820'
+                        persistent_keepalive: 25
+                    format: 'json'
+                    created_at: '2024-01-01T12:00:00Z'
+                mobile_format:
+                  summary: Mobile format response
+                  value:
+                    device_id: '123e4567-e89b-12d3-a456-426614174000'
+                    device_name: 'iPhone 15'
+                    network_name: 'Company VPN'
+                    configuration:
+                      name: 'Company VPN'
+                      addresses: ['10.0.0.2/24']
+                      dns: ['8.8.8.8', '8.8.4.4']
+                      mtu: 1420
+                      public_key: 'def456...' # pragma: allowlist secret
+                      allowed_ips: ['0.0.0.0/0']
+                      endpoint: 'vpn.example.com:51820'
+                      persistent_keepalive: 25
+                    format: 'mobile'
+                    created_at: '2024-01-01T12:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /devices/{device_id}/config/wg:
+    get:
+      tags:
+        - Device Configuration
+      summary: Get device configuration as WireGuard .conf file
+      description: |
+        Retrieves WireGuard configuration in standard .conf file format.
+
+        This endpoint returns plain text suitable for direct use with WireGuard clients.
+
+        **Device Authentication**: Requires API key and IP allowlist validation.
+      operationId: getDeviceConfigWg
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the device
+          example: '123e4567-e89b-12d3-a456-426614174000'
+      security:
+        - DeviceAuth: []
+      responses:
+        '200':
+          description: WireGuard configuration file
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: 'text/plain; charset=utf-8'
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="iPhone_15_wg0.conf"'
+            Cache-Control:
+              schema:
+                type: string
+                description: 'no-store, no-cache, must-revalidate, private'
+            Pragma:
+              schema:
+                type: string
+                example: 'no-cache'
+            Expires:
+              schema:
+                type: string
+                example: '0'
+            X-Content-Type-Options:
+              schema:
+                type: string
+                example: 'nosniff'
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: | # pragma: allowlist secret
+                  [Interface]
+                  PrivateKey = abc123...
+                  Address = 10.0.0.2/24
+                  DNS = 8.8.8.8,8.8.4.4
+                  MTU = 1420
+
+                  [Peer]
+                  PublicKey = def456... # pragma: allowlist secret
+                  AllowedIPs = 0.0.0.0/0
+                  Endpoint = vpn.example.com:51820
+                  PersistentKeepalive = 25
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /devices/admin/{device_id}/config:
+    get:
+      tags:
+        - Admin Device Configuration
+      summary: Get device configuration (admin endpoint)
+      description: |
+        Retrieves WireGuard configuration for a specific device as an administrator.
+
+        **Admin Authentication**: Requires master session token and master password unlock.
+
+        This endpoint allows administrators to retrieve device configurations
+        for support, troubleshooting, or backup purposes.
+      operationId: adminGetDeviceConfig
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the device
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        - name: format
+          in: query
+          description: Configuration format
+          required: false
+          schema:
+            type: string
+            enum: [wg, json, mobile]
+            default: wg
+          example: 'json'
+        - name: platform
+          in: query
+          description: Mobile platform for optimized config (used with format=mobile)
+          required: false
+          schema:
+            type: string
+            enum: [ios, android, windows, macos, linux]
+          example: 'ios'
+      security:
+        - AdminAuth: []
+      responses:
+        '200':
+          description: Device configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceConfigResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '423':
+          $ref: '#/components/responses/Locked'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /devices/admin/{device_id}/config/wg:
+    get:
+      tags:
+        - Admin Device Configuration
+      summary: Get device configuration as WireGuard .conf file (admin endpoint)
+      description: |
+        Retrieves WireGuard configuration in standard .conf file format as an administrator.
+
+        **Admin Authentication**: Requires master session token and master password unlock.
+      operationId: adminGetDeviceConfigWg
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the device
+          example: '123e4567-e89b-12d3-a456-426614174000'
+      security:
+        - AdminAuth: []
+      responses:
+        '200':
+          description: WireGuard configuration file
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: 'text/plain; charset=utf-8'
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="Device_Name_wg0.conf"'
+            Cache-Control:
+              schema:
+                type: string
+                description: 'no-store, no-cache, must-revalidate, private'
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: | # pragma: allowlist secret
+                  [Interface]
+                  PrivateKey = abc123...
+                  Address = 10.0.0.2/24
+                  DNS = 8.8.8.8,8.8.4.4
+
+                  [Peer]
+                  PublicKey = def456... # pragma: allowlist secret
+                  AllowedIPs = 0.0.0.0/0
+                  Endpoint = vpn.example.com:51820
+                  PersistentKeepalive = 25
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '423':
+          $ref: '#/components/responses/Locked'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    DeviceAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Device-specific API key.
+
+        The API key is:
+        - Generated when a device is created
+        - Shown only once during creation
+        - Hashed in the database
+        - Can be rotated by administrators
+
+        Example: `Authorization: Bearer wg-device-api-key-12345`
+
+    AdminAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Master session token from master password unlock.
+
+        Send as: `Authorization: Master <token>`.
+
+        Requires master password to be unlocked before accessing device configurations.
+        Tokens expire with the master password cache TTL and idle timeout.
+
+  schemas:
+    DeviceConfigResponse:
+      type: object
+      required:
+        - device_id
+        - device_name
+        - network_name
+        - configuration
+        - format
+        - created_at
+      properties:
+        device_id:
+          type: string
+          format: uuid
+          description: UUID of the device
+          example: '123e4567-e89b-12d3-a456-426614174000'
+        device_name:
+          type: string
+          description: Human-readable device name
+          example: 'iPhone 15'
+        network_name:
+          type: string
+          description: Name of the WireGuard network
+          example: 'Company VPN'
+        configuration:
+          oneOf:
+            - type: string
+              description: WireGuard configuration in WG format
+            - $ref: '#/components/schemas/DeviceConfiguration'
+            - $ref: '#/components/schemas/MobileConfig'
+          description: Device configuration (format depends on request)
+        format:
+          type: string
+          enum: [wg, json, mobile]
+          description: Format of the returned configuration
+          example: 'json'
+        created_at:
+          type: string
+          format: date-time
+          description: When the configuration was generated
+          example: '2024-01-01T12:00:00Z'
+
+    DeviceConfiguration:
+      type: object
+      required:
+        - interface
+        - peer
+      properties:
+        interface:
+          $ref: '#/components/schemas/WireGuardInterfaceConfig'
+        peer:
+          $ref: '#/components/schemas/WireGuardPeerConfig'
+
+    WireGuardInterfaceConfig:
+      type: object
+      required:
+        - private_key
+        - address
+      properties:
+        private_key:
+          type: string
+          description: Device's private key
+          example: 'abc123...' # pragma: allowlist secret
+        address:
+          type: string
+          description: Device's WireGuard IP address with CIDR
+          example: '10.0.0.2/24'
+        dns:
+          type: string
+          description: DNS servers for the device
+          example: '8.8.8.8,8.8.4.4'
+        mtu:
+          type: integer
+          minimum: 576
+          maximum: 9000
+          description: MTU for the device
+          example: 1420
+
+    WireGuardPeerConfig:
+      type: object
+      required:
+        - public_key
+        - allowed_ips
+      properties:
+        public_key:
+          type: string
+          description: Network's public key
+          example: 'def456...' # pragma: allowlist secret
+        allowed_ips:
+          type: string
+          description: Allowed IPs for this peer
+          example: '0.0.0.0/0'
+        endpoint:
+          type: string
+          description: Network endpoint (host:port)
+          example: 'vpn.example.com:51820'
+        persistent_keepalive:
+          type: integer
+          minimum: 0
+          maximum: 86400
+          description: Persistent keepalive interval in seconds
+          example: 25
+        preshared_key:
+          type: string
+          description: Optional preshared key
+          example: 'xyz789...'
+
+    MobileConfig:
+      type: object
+      required:
+        - name
+        - addresses
+        - public_key
+        - allowed_ips
+      properties:
+        name:
+          type: string
+          description: Configuration name for mobile app
+          example: 'Company VPN'
+        addresses:
+          type: array
+          items:
+            type: string
+          description: IP addresses
+          example: ['10.0.0.2/24']
+        dns:
+          type: array
+          items:
+            type: string
+          description: DNS servers
+          example: ['8.8.8.8', '8.8.4.4']
+        mtu:
+          type: integer
+          minimum: 576
+          maximum: 9000
+          description: MTU for the device
+          example: 1420
+        public_key:
+          type: string
+          description: Peer public key
+          example: 'def456...' # pragma: allowlist secret
+        allowed_ips:
+          type: array
+          items:
+            type: string
+          description: Allowed IP ranges
+          example: ['0.0.0.0/0']
+        endpoint:
+          type: string
+          description: Server endpoint
+          example: 'vpn.example.com:51820'
+        persistent_keepalive:
+          type: integer
+          minimum: 0
+          maximum: 86400
+          description: Persistent keepalive interval in seconds
+          example: 25
+
+  responses:
+    Unauthorized:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'Invalid API key'
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            example: 'no-store, no-cache, must-revalidate, private'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'IP address not allowed'
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            example: 'no-store, no-cache, must-revalidate, private'
+
+    NotFound:
+      description: Device not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'Device not found'
+
+    Locked:
+      description: Master password not unlocked
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'Master password must be unlocked to access device configurations'
+
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'Rate limit exceeded'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: 'Internal server error'
+
+tags:
+  - name: Device Configuration
+    description: Device self-service configuration retrieval endpoints
+  - name: Admin Device Configuration
+    description: Administrative endpoints for device configuration access

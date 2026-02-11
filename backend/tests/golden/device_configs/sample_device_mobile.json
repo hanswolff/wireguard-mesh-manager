@@ -1,0 +1,17 @@
+{
+  "name": "Test Device - Ios",
+  "addresses": [
+    "10.0.0.2/24"
+  ],
+  "dns": [
+    "8.8.8.8",
+    "8.8.4.4"
+  ],
+  "mtu": 1420,
+  "public_key": "peer1_public_key_1234567890123456789012",
+  "allowed_ips": [
+    "10.0.0.3/32"
+  ],
+  "endpoint": "192.168.1.10:51820",
+  "persistent_keepalive": 25
+}

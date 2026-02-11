@@ -1,0 +1,128 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["py.typed"]
+
+[project]
+name = "wireguard-mesh-manager"
+version = "1.0.0"
+description = "Backend API for managing WireGuard VPN networks and devices"
+authors = [
+    {name = "WireGuard Mesh Manager Team"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.3",
+    "pydantic-settings>=2.6.1",
+    "httpx>=0.28.1",
+    "sqlalchemy>=2.0.0",
+    "greenlet>=3.0.0",
+    "alembic>=1.14.0",
+    "aiosqlite>=0.20.0",
+    "passlib>=1.7.4",
+    "cryptography>=41.0.0",
+    "typer>=0.12.0",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "python-json-logger>=2.0.7",
+    "redis>=5.0.0",
+    "python-multipart>=0.0.12",
+    "bcrypt>=5.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.13.0",
+    "ruff>=0.8.0",
+    "black>=24.10.0",
+    "pre-commit>=4.0.1",
+]
+
+[project.scripts]
+wmm-backup = "app.cli.backup:main"
+wmm-backup-cli = "app.cli.backup:main"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "N",  # pep8-naming
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "PTH", # flake8-use-pathlib
+    "PERF", # flake8-perf
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # FastAPI dependency injection pattern - allow function calls in defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"tests/**" = [
+    "S101",  # Allow assert statements in tests
+    "B008",  # Allow function calls in defaults for test dependencies
+    "UP038",  # Allow (X, Y) style isinstance in tests for compatibility
+]
+"app/schemas/backup.py" = ["TC003"]  # datetime needed at runtime for Pydantic
+"app/schemas/export.py" = ["TC003"]  # datetime needed at runtime for Pydantic
+"app/middleware/auth.py" = ["TC002"]  # Request used at runtime
+"app/routers/**" = ["TC001", "TC002"]  # AsyncSession and AuditService used at runtime for dependency injection
+"app/services/master_session.py" = ["SIM102"]  # Nested if for clarity
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "--cov=app --cov-report=term-missing --cov-report=html"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

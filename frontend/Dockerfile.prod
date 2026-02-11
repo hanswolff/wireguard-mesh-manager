@@ -1,0 +1,79 @@
+# Multi-stage production build for better security
+FROM node:20-alpine AS builder
+
+LABEL maintainer="devops@wireguard-mesh-manager.org" \
+      version="1.0" \
+      description="WireGuard Mesh Manager Frontend" \
+      org.opencontainers.image.source="https://github.com/wireguard-mesh-manager/wireguard-mesh-manager"
+
+# Set environment variables for build
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS="--max_old_space_size=2048" \
+    NEXT_PRIVATE_SKIP_VALIDATION=1
+
+# Install build dependencies
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (dev dependencies needed for build)
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --include=dev && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Security labels
+LABEL maintainer="devops@wireguard-mesh-manager.org" \
+      version="1.0" \
+      description="WireGuard Mesh Manager Frontend Production" \
+      org.opencontainers.image.source="https://github.com/wireguard-mesh-manager/wireguard-mesh-manager"
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS="--no-deprecation --max_old_space_size=256 --max_semi_space_size=64 --no-force-async-hooks-checks"
+
+# Install runtime dependencies only
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache \
+    curl \
+    dumb-init \
+    ca-certificates \
+    && addgroup -g 1001 -S wmm \
+    && adduser -S wmm -u 1001 -G wmm
+
+WORKDIR /app
+
+COPY --from=builder --chown=wmm:wmm /app/public ./public
+COPY --from=builder --chown=wmm:wmm /app/.next/standalone ./
+COPY --from=builder --chown=wmm:wmm /app/.next/static ./.next/static
+
+RUN mkdir -p /tmp && \
+    chown -R wmm:wmm /tmp && \
+    chmod 700 /tmp
+
+USER wmm
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Expose port
+EXPOSE 3000
+
+# Use dumb-init as PID 1
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "server.js"]

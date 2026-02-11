@@ -1,0 +1,127 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wmm-backend
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8000:8000' # Expose on localhost for health checks and direct access
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/alembic.ini:/app/alembic.ini:ro
+      - ./backend/migrations:/app/migrations:ro
+      - wmm-pip-cache:/root/.cache/pip
+    # Security hardening
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/tmp:noexec,nosuid,size=100m
+      - /run:noexec,nosuid,size=50m
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    ulimits:
+      nproc: 50
+      nofile:
+        soft: 1024
+        hard: 2048
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    init: true
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/wireguard.db
+      - LOG_LEVEL=INFO
+      - DEBUG=false
+      - CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://127.0.0.1:3000
+      - TRUSTED_PROXY_HEADERS=x-forwarded-for,x-forwarded-proto
+      - RATE_LIMIT_BACKEND=redis
+      - RATE_LIMIT_REDIS_URL=redis://redis:6379/0
+      - RATE_LIMIT_REDIS_PREFIX=wmm:ratelimit
+      # Set BOOTSTRAP_TOKEN to prevent unauthenticated takeover on fresh installs
+      # Generate a secure token: openssl rand -base64 32
+      # - BOOTSTRAP_TOKEN=
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - wmm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: wmm-redis
+    restart: unless-stopped
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    networks:
+      - wmm-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wmm-frontend
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3000:3000' # Only bind to localhost
+    environment:
+      - NODE_ENV=development
+      - BACKEND_URL=http://backend:8000
+    # Security hardening
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/tmp:noexec,nosuid,size=100m
+      - /app/.next/cache:noexec,nosuid,size=100m
+      - /run:noexec,nosuid,size=50m
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    ulimits:
+      nproc: 50
+      nofile:
+        soft: 1024
+        hard: 2048
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    init: true
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - wmm-network
+
+networks:
+  wmm-network:
+    driver: bridge
+    # Security hardening - restrict internal communication
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+    enable_ipv6: false
+
+volumes:
+  wmm-data:
+    driver: local
+  wmm-pip-cache:
+    driver: local

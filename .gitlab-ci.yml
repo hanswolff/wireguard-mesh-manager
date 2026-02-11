@@ -1,0 +1,260 @@
+stages:
+  - validate
+  - test
+  - security
+
+variables:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip'
+  NPM_CACHE_DIR: '$CI_PROJECT_DIR/.cache/npm'
+
+cache:
+  paths:
+    - .cache/pip
+    - .venv/
+    - frontend/.cache/npm/
+    - frontend/node_modules/
+
+# Template for Node.js jobs
+.nodejs_template:
+  image: node:$NODE_VERSION
+  before_script:
+    - node --version
+    - npm --version
+    - cd frontend
+    - npm ci --cache $NPM_CACHE_DIR
+  after_script:
+    - cd ..
+
+# Frontend code quality and validation
+frontend-code-quality:
+  extends: .nodejs_template
+  stage: validate
+  script:
+    - echo "Running frontend type checking..."
+    - npm run type-check
+    - echo "Running frontend linting..."
+    - npm run lint
+    - echo "Checking frontend code formatting..."
+    - npm run format:check
+    - echo "Running frontend build..."
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/.next/
+      - frontend/out/
+    expire_in: 1 week
+  allow_failure: false
+
+# Template for Python jobs
+.python_template:
+  image: python:$PYTHON_VERSION
+  before_script:
+    - python --version
+    - pip --version
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - python -m pip install --upgrade pip
+    - pip install -r requirements-dev.txt
+
+# Linting and type checking
+code-quality:
+  extends: .python_template
+  stage: validate
+  script:
+    - echo "Running ruff linting..."
+    - ruff check .
+    - echo "Running mypy type checking..."
+    - mypy app
+    - echo "Checking code formatting with black..."
+    - black --check .
+    - echo "Running ruff format check..."
+    - ruff format --check .
+  artifacts:
+    reports:
+      junit: reports/code-quality.xml
+    paths:
+      - reports/
+    expire_in: 1 week
+  allow_failure: false
+
+# Unit tests
+unit-tests:
+  extends: .python_template
+  stage: test
+  script:
+    - echo "Running unit tests with coverage..."
+    - pytest -v --cov=app --cov-report=term-missing --cov-report=html --cov-report=xml --junitxml=reports/unit-tests.xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      junit: reports/unit-tests.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - htmlcov/
+      - coverage.xml
+      - reports/
+    expire_in: 1 week
+  dependencies: []
+
+# Integration tests
+integration-tests:
+  extends: .python_template
+  stage: test
+  script:
+    - echo "Running integration tests..."
+    - pytest -v -m integration --cov=app --cov-report=term-missing --cov-report=xml --junitxml=reports/integration-tests.xml
+  artifacts:
+    reports:
+      junit: reports/integration-tests.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - coverage.xml
+      - reports/
+    expire_in: 1 week
+  dependencies: []
+
+# Frontend security vulnerability scan for dependencies
+frontend-dependency-scan:
+  extends: .nodejs_template
+  stage: security
+  script:
+    - echo "Scanning frontend dependencies for known security vulnerabilities..."
+    - npm audit --audit-level=moderate --json > ../reports/frontend-audit-report.json || true
+    - npm audit --audit-level=moderate
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  allow_failure: true # Don't fail the pipeline entirely for vulnerabilities, but make them visible
+
+# Security vulnerability scan for dependencies
+dependency-scan:
+  extends: .python_template
+  stage: security
+  script:
+    - echo "Installing safety and pip-audit for vulnerability scanning..."
+    - pip install safety pip-audit
+    - echo "Scanning for known security vulnerabilities in dependencies..."
+    - if [ -f requirements.lock.txt ]; then safety check -r requirements.lock.txt --json --output reports/safety-report.json || true; else safety check --json --output reports/safety-report.json || true; fi
+    - if [ -f requirements.lock.txt ]; then pip-audit -r requirements.lock.txt --format=json --output reports/pip-audit-report.json || true; fi
+    - if [ -f requirements.lock.txt ]; then safety check -r requirements.lock.txt --exit-code; else safety check --exit-code; fi
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  allow_failure: true # Don't fail the pipeline entirely for vulnerabilities, but make them visible
+
+# Static code security analysis
+bandit-scan:
+  extends: .python_template
+  stage: security
+  script:
+    - echo "Installing bandit for security linter..."
+    - pip install bandit[toml]
+    - echo "Running bandit security linter..."
+    - bandit -r app/ -f json -o reports/bandit-report.json || true
+    - bandit -r app/ -f txt -o reports/bandit-report.txt
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  allow_failure: true # Don't fail the pipeline entirely for security issues, but make them visible
+
+# Comprehensive supply-chain security check
+supply-chain-security:
+  stage: security
+  image: python:$PYTHON_VERSION
+  before_script:
+    - python --version
+    - pip --version
+    - node --version || echo "Node.js not available"
+    - npm --version || echo "npm not available"
+    - pip install safety pip-audit pip-licenses
+    - npm install -g license-checker || echo "npm not available"
+  script:
+    - echo "Running comprehensive supply-chain security verification..."
+    - ./scripts/supply-chain-security.sh
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  allow_failure: true # Don't fail the pipeline entirely for security issues, but make them visible
+
+# Generate combined security report
+security-report:
+  extends: .python_template
+  stage: security
+  script:
+    - echo "Generating combined security report..."
+    - mkdir -p reports
+    - echo "# Security Scan Report" > reports/security-summary.md
+    - echo "Generated on: $(date)" >> reports/security-summary.md
+    - echo "" >> reports/security-summary.md
+    - echo "## Frontend Dependency Vulnerability Scan" >> reports/security-summary.md
+    - echo "See frontend-audit-report.json for detailed results" >> reports/security-summary.md
+    - echo "" >> reports/security-summary.md
+    - echo "## Backend Dependency Vulnerability Scan" >> reports/security-summary.md
+    - echo "See safety-report.json for detailed results" >> reports/security-summary.md
+    - echo "" >> reports/security-summary.md
+    - echo "## Static Code Security Analysis" >> reports/security-summary.md
+    - echo "See bandit-report.json for detailed results" >> reports/security-summary.md
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  dependencies:
+    - dependency-scan
+    - bandit-scan
+    - frontend-dependency-scan
+  needs:
+    - dependency-scan
+    - bandit-scan
+    - frontend-dependency-scan
+
+# Automated dependency update (scheduled job)
+dependency-update:
+  stage: .post
+  image: python:$PYTHON_VERSION
+  before_script:
+    - apt-get update -y && apt-get install -y git curl
+    - python --version
+    - pip --version
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    - apt-get install -y nodejs
+    - node --version
+    - npm --version
+    - pip install --upgrade pip-tools safety pip-audit pip-licenses
+    - npm install -g license-checker
+    # Configure git for commits
+    - git config --global user.name "GitLab CI/CD"
+    - git config --global user.email "gitlab-ci@gitlab.com"
+  script:
+    - echo "Running automated dependency update..."
+    - ./scripts/update-dependencies.sh
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  when: manual # Allow manual triggering for testing
+
+# Pipeline summary job
+pipeline-summary:
+  stage: .post
+  image: alpine:latest
+  script:
+    - echo "Pipeline completed successfully!"
+    - echo "Artifacts and reports are available for download."
+  dependencies:
+    - code-quality
+    - unit-tests
+    - integration-tests
+    - frontend-code-quality
+    - security-report

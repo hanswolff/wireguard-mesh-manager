@@ -1,0 +1,148 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: wmm-backend-prod
+    restart: unless-stopped
+    # No ports exposed - only accessible via internal Docker network
+    # Frontend will proxy API requests through /api/* routes
+    volumes:
+      - ./backend/data:/app/data:rw
+      - ./backend/alembic.ini:/app/alembic.ini:ro
+      - ./backend/migrations:/app/migrations:ro
+      - wmm-pip-cache-prod:/root/.cache/pip
+    # Enhanced security hardening for production
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/tmp:noexec,nosuid,size=100m
+      - /app/run:noexec,nosuid,size=50m
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    ulimits:
+      nproc: 30
+      nofile:
+        soft: 1024
+        hard: 2048
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/wireguard.db
+      - LOG_LEVEL=WARNING
+      - DEBUG=false
+      - CORS_ORIGINS=http://frontend:3000,http://localhost:3000,http://127.0.0.1:3000
+      - TRUSTED_PROXY_HEADERS=x-forwarded-for,x-forwarded-proto
+      - PYTHONOPTIMIZE=2
+      - RATE_LIMIT_BACKEND=redis
+      - RATE_LIMIT_REDIS_URL=redis://redis:6379/0
+      - RATE_LIMIT_REDIS_PREFIX=wmm:ratelimit
+      # Set BOOTSTRAP_TOKEN to prevent unauthenticated takeover on fresh installs
+      # Generate a secure token: openssl rand -base64 32
+      # - BOOTSTRAP_TOKEN=
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/health']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - wmm-network-prod
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      target: production
+      args:
+        NODE_ENV: production
+    container_name: wmm-frontend-prod
+    restart: unless-stopped
+    # Only bind to localhost for production
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      - NODE_ENV=production
+      - BACKEND_URL=http://backend:8000
+      - HOSTNAME=0.0.0.0
+    # Enhanced security hardening for production
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/tmp:noexec,nosuid,size=100m
+      - /app/.next/cache:noexec,nosuid,size=100m
+      - /app/run:noexec,nosuid,size=50m
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:docker-default
+    ulimits:
+      nproc: 30
+      nofile:
+        soft: 1024
+        hard: 2048
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - wmm-network-prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: wmm-redis-prod
+    restart: unless-stopped
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    networks:
+      - wmm-network-prod
+
+networks:
+  wmm-network-prod:
+    driver: bridge
+    # Enhanced network security
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.31.240.0/24
+          gateway: 172.31.240.1
+    enable_ipv6: false
+
+volumes:
+  wmm-pip-cache-prod:
+    driver: local
