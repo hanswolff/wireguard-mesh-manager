@@ -155,7 +155,9 @@ export function MasterPasswordUnlockModal({
                 id="master_password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter master password"
-                autoComplete="off"
+                autoComplete="new-password"
+                data-form-type="other"
+                data-lpignore="true"
                 {...form.register('master_password')}
                 className="pr-10"
               />

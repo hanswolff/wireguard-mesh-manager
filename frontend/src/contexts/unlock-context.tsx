@@ -35,9 +35,13 @@ interface UnlockContextType {
   status: MasterPasswordStatusResponse | null;
   unlock: (password: string, ttlHours?: number) => Promise<boolean>;
   lock: () => Promise<void>;
+  forceLock: () => void;
   refreshStatus: () => Promise<void>;
   extendTtl: (additionalHours: number) => Promise<boolean>;
   requireUnlock: (callback?: () => void) => boolean;
+  showUnlockModal: () => void;
+  hideUnlockModal: () => void;
+  showUnlockModalFlag: boolean;
   unlockError: UnlockError | null;
   clearUnlockError: () => void;
 }
@@ -57,6 +61,7 @@ export function UnlockProvider({ children }: UnlockProviderProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [lastCheck, setLastCheck] = useState<number>(0);
   const [unlockError, setUnlockError] = useState<UnlockError | null>(null);
+  const [showUnlockModalFlag, setShowUnlockModalFlag] = useState(false);
 
   // Check status on mount and periodically
   useEffect(() => {
@@ -203,6 +208,12 @@ export function UnlockProvider({ children }: UnlockProviderProps) {
     }
   };
 
+  const forceLock = (): void => {
+    clearMasterSessionToken();
+    setIsUnlocked(false);
+    setStatus(null);
+  };
+
   const extendTtl = async (additionalHours: number): Promise<boolean> => {
     try {
       const response = await apiClient.extendMasterPasswordTTL({
@@ -252,15 +263,27 @@ export function UnlockProvider({ children }: UnlockProviderProps) {
     setUnlockError(null);
   };
 
+  const showUnlockModal = () => {
+    setShowUnlockModalFlag(true);
+  };
+
+  const hideUnlockModal = () => {
+    setShowUnlockModalFlag(false);
+  };
+
   const contextValue: UnlockContextType = {
     isUnlocked,
     isChecking,
     status,
     unlock,
     lock,
+    forceLock,
     refreshStatus: () => refreshStatus(true),
     extendTtl,
     requireUnlock,
+    showUnlockModal,
+    hideUnlockModal,
+    showUnlockModalFlag,
     unlockError,
     clearUnlockError,
   };

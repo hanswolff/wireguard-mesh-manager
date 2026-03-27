@@ -5,12 +5,14 @@ import { Menu } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { MasterPasswordUnlockModal } from './ui/master-password-unlock-modal';
 import { UnlockStatusButton } from './ui/unlock-status-button';
+import { useUnlock } from '@/contexts/unlock-context';
 
 interface TopbarProps {
   onMenuToggle: () => void;
 }
 
 export function Topbar({ onMenuToggle }: TopbarProps) {
+  const { showUnlockModalFlag, hideUnlockModal } = useUnlock();
   const [showUnlockModal, setShowUnlockModal] = useState(false);
 
   return (
@@ -27,14 +29,19 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            <UnlockStatusButton
-              onShowUnlockModal={() => setShowUnlockModal(true)}
-            />
+            <UnlockStatusButton />
             <ThemeToggle />
           </div>
         </div>
       </header>
 
+      {/* Global unlock modal (triggered by showUnlockModal from context) */}
+      <MasterPasswordUnlockModal
+        isOpen={showUnlockModalFlag}
+        onClose={hideUnlockModal}
+      />
+
+      {/* Local unlock modal (triggered by clicking the button in topbar) */}
       <MasterPasswordUnlockModal
         isOpen={showUnlockModal}
         onClose={() => setShowUnlockModal(false)}

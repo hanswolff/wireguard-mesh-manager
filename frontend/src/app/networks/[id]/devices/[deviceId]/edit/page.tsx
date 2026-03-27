@@ -19,6 +19,7 @@ import {
 import apiClient from '@/lib/api-client';
 import DeviceForm from '../../../components/device-form';
 import { useBreadcrumbs } from '@/components/breadcrumb-provider';
+import { getErrorMessage, getErrorTitle, isLockedError } from '@/lib/error-handler';
 
 export default function DeviceEditPage() {
   const params = useParams();
@@ -57,12 +58,11 @@ export default function DeviceEditPage() {
       setLabel(`/networks/${networkId}`, networkData.name || networkId);
       setLabel(`/networks/${networkId}/devices/${deviceId}`, deviceData.name || deviceId);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch device data'
-      );
+      const errorMessage = getErrorMessage(err, 'fetch device data');
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: err instanceof Error ? err.message : 'Failed to fetch device data',
+        title: getErrorTitle(err),
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -82,9 +82,10 @@ export default function DeviceEditPage() {
 
       router.push(`/networks/${networkId}/devices/${deviceId}`);
     } catch (err) {
+      const errorMessage = getErrorMessage(err, 'update device');
       toast({
-        title: 'Update Failed',
-        description: err instanceof Error ? err.message : 'Failed to update device',
+        title: getErrorTitle(err),
+        description: errorMessage,
         variant: 'destructive',
       });
       // Re-throw to let DeviceForm handle fieldErrors

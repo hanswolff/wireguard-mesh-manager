@@ -46,6 +46,11 @@ class KeyRotationStatus(BaseModel):
     failed_networks: int
     failed_devices: int
     errors: list[str]
+    session_invalidated: bool = False
+    # Location rotation fields
+    total_locations: int = 0
+    rotated_locations: int = 0
+    failed_locations: int = 0
 
 
 class KeyRotationProgress(BaseModel):

@@ -164,9 +164,9 @@ class TestKeyRotationService:
             "current_password", "new_password"
         )
 
-        assert result.total_networks == 0
+        assert result.total_networks == 1  # One network exists (without PSK)
         assert result.total_devices == 1
-        assert result.rotated_networks == 0
+        assert result.rotated_networks == 0  # No network PSK to rotate
         assert result.rotated_devices == 1
         assert result.failed_networks == 0
         assert result.failed_devices == 0

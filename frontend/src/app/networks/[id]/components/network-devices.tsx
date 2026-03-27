@@ -72,6 +72,8 @@ import apiClient, {
   type LocationResponse,
   type WireGuardNetworkResponse,
 } from '@/lib/api-client';
+import { getErrorMessage, getErrorTitle, isLockedError } from '@/lib/error-handler';
+import { useLockedErrorHandler } from '@/hooks/use-locked-error-handler';
 
 import DeviceForm from './device-form';
 import DeviceFilters, {
@@ -179,13 +181,10 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
       setDevices(data);
       setFetchError(null);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while loading devices';
+      const errorMessage = getErrorMessage(error, 'load devices');
       setFetchError(errorMessage);
       toast({
-        title: 'Failed to fetch devices',
+        title: getErrorTitle(error),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -226,11 +225,10 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
         fetchDevices();
         onDeviceChanged?.();
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Failed to create device';
+        const errorMessage = getErrorMessage(error, 'create device');
         // Don't close the dialog on error - let user see validation errors
         toast({
-          title: 'Create Failed',
+          title: getErrorTitle(error),
           description: errorMessage,
           variant: 'destructive',
         });
@@ -242,6 +240,8 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
     },
     [fetchDevices, onDeviceChanged]
   );
+
+  const { handleLockedErrorWithUnlock } = useLockedErrorHandler();
 
   const handleUpdateDevice = useCallback(
     async (data: DeviceCreate | DeviceUpdate) => {
@@ -277,11 +277,15 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
         fetchDevices();
         onDeviceChanged?.();
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Failed to update device';
+        // Handle 423 locked error specially - show unlock modal instead of closing dialog
+        if (handleLockedErrorWithUnlock(error)) {
+          // Error was handled, modal is showing, Return without throwing
+        }
+
+        const errorMessage = getErrorMessage(error, 'update device');
         // Don't close dialog on error - let user see validation errors
         toast({
-          title: 'Update Failed',
+          title: getErrorTitle(error),
           description: errorMessage,
           variant: 'destructive',
         });
@@ -291,7 +295,7 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
         setIsSubmitting(false);
       }
     },
-    [selectedDevice, fetchDevices, onDeviceChanged]
+    [selectedDevice, fetchDevices, onDeviceChanged, handleLockedErrorWithUnlock]
   );
 
   const handleDeleteDevice = useCallback(async () => {
@@ -311,10 +315,9 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
       fetchDevices();
       onDeviceChanged?.();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to delete device';
+      const errorMessage = getErrorMessage(error, 'delete device');
       toast({
-        title: 'Delete Failed',
+        title: getErrorTitle(error),
         description: errorMessage,
         variant: 'destructive',
       });
@@ -333,12 +336,9 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
         setShowApiKeyDialog(true);
         fetchDevices();
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to regenerate API key';
+        const errorMessage = getErrorMessage(error, 'regenerate API key');
         toast({
-          title: 'API Key Generation Failed',
+          title: getErrorTitle(error),
           description: errorMessage,
           variant: 'destructive',
         });
@@ -359,12 +359,9 @@ export default function NetworkDevices({ networkId, onDeviceChanged }: NetworkDe
         setShowRegenerateKeysDialog(true);
         fetchDevices();
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Failed to regenerate WireGuard keys';
+        const errorMessage = getErrorMessage(error, 'regenerate WireGuard keys');
         toast({
-          title: 'Key Regeneration Failed',
+          title: getErrorTitle(error),
           description: errorMessage,
           variant: 'destructive',
         });

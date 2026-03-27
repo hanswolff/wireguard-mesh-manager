@@ -6,6 +6,7 @@
 export interface ApiError extends Error {
   status?: number;
   isUnauthorized?: boolean;
+  isLocked?: boolean;
   retryAfter?: number;
 }
 
@@ -17,8 +18,23 @@ export function isUnauthorizedError(error: unknown): error is ApiError {
     error !== null &&
     error !== undefined &&
     typeof error === 'object' &&
-    'status' in error &&
-    (error as ApiError).status === 401
+    ('isUnauthorized' in error
+      ? (error as ApiError).isUnauthorized === true
+      : 'status' in error && (error as ApiError).status === 401)
+  );
+}
+
+/**
+ * Check if an error is a locked error (423 - Master password locked)
+ */
+export function isLockedError(error: unknown): error is ApiError {
+  return (
+    error !== null &&
+    error !== undefined &&
+    typeof error === 'object' &&
+    ('isLocked' in error
+      ? (error as ApiError).isLocked === true
+      : 'status' in error && (error as ApiError).status === 423)
   );
 }
 
@@ -58,6 +74,11 @@ export function getErrorMessage(error: unknown, context: string = 'operation'): 
   // Check for 401 Unauthorized errors
   if (isUnauthorizedError(error)) {
     return 'Master password is required to access this feature. Please unlock the application first.';
+  }
+
+  // Check for 423 Locked errors (master password cache expired/locked)
+  if (isLockedError(error)) {
+    return 'Your session has expired or the master password cache is locked. Please unlock the application to continue.';
   }
 
   // Check for 403 Forbidden errors
@@ -112,6 +133,10 @@ export function getErrorMessage(error: unknown, context: string = 'operation'): 
 export function getErrorTitle(error: unknown): string {
   if (isUnauthorizedError(error)) {
     return 'Master Password Required';
+  }
+
+  if (isLockedError(error)) {
+    return 'Session Expired';
   }
 
   if (isRateLimitError(error)) {

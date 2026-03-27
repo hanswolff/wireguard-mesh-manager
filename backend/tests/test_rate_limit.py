@@ -7,7 +7,7 @@ import time
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response
 
 from app.middleware.rate_limit import RateLimitEntry, RateLimitMiddleware
 
@@ -180,12 +180,10 @@ class TestRateLimitMiddleware:
             response = await middleware.dispatch(mock_request, mock_call_next)
             assert response is not None
 
-        # Next request should raise rate limit exception
-        with pytest.raises(HTTPException) as exc_info:
-            await middleware.dispatch(mock_request, mock_call_next)
-
-        assert exc_info.value.status_code == 429
-        assert "Rate limit exceeded" in str(exc_info.value.detail)
+        # Next request should return a 429 response
+        response = await middleware.dispatch(mock_request, mock_call_next)
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.body.decode()
 
     async def test_api_key_rate_limiting(
         self, middleware: RateLimitMiddleware, mock_call_next: AsyncMock
@@ -203,12 +201,10 @@ class TestRateLimitMiddleware:
             response = await middleware.dispatch(request, mock_call_next)
             assert response is not None
 
-        # Next request should raise rate limit exception
-        with pytest.raises(HTTPException) as exc_info:
-            await middleware.dispatch(request, mock_call_next)
-
-        assert exc_info.value.status_code == 429
-        assert "Rate limit exceeded" in str(exc_info.value.detail)
+        # Next request should return a 429 response
+        response = await middleware.dispatch(request, mock_call_next)
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.body.decode()
 
     async def test_rate_limit_headers(
         self,
@@ -310,11 +306,11 @@ class TestRateLimitMiddleware:
         assert middleware._cleanup_started is True
         assert middleware._cleanup_task is not None
 
-    async def test_rate_limit_error_creation(
+    async def test_rate_limit_response_creation(
         self, middleware: RateLimitMiddleware
     ) -> None:
-        """Test the _create_rate_limit_error helper method."""
-        error = middleware._create_rate_limit_error(
+        """Test the _create_rate_limit_response helper method."""
+        response = middleware._create_rate_limit_response(
             retry_after=60.0,
             limit=100,
             window=3600,
@@ -322,12 +318,12 @@ class TestRateLimitMiddleware:
             remaining=0,
         )
 
-        assert error.status_code == 429
-        assert error.detail == "Too many requests"
-        assert error.headers["Retry-After"] == "60"
-        assert error.headers["X-RateLimit-Limit"] == "100"
-        assert error.headers["X-RateLimit-Window"] == "3600"
-        assert error.headers["X-RateLimit-Remaining"] == "0"
+        assert response.status_code == 429
+        assert "Too many requests" in response.body.decode()
+        assert response.headers["Retry-After"] == "60"
+        assert response.headers["X-RateLimit-Limit"] == "100"
+        assert response.headers["X-RateLimit-Window"] == "3600"
+        assert response.headers["X-RateLimit-Remaining"] == "0"
 
     @patch("asyncio.get_running_loop")
     async def test_cleanup_task_runtime_error(

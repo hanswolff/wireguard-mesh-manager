@@ -662,11 +662,28 @@ async def _generate_admin_config(
         device_id, config_service, master_password
     )
 
+    # Decrypt device DEK to use for preshared key decryption
+    # This ensures we use the device's cached PSKs which are encrypted with the DEK,
+    # rather than falling back to master password which may not work if key rotation
+    # didn't re-encrypt network/location PSKs
+    device_dek = None
+    if device.device_dek_encrypted_master:
+        try:
+            device_dek = decrypt_device_dek_from_json(
+                device.device_dek_encrypted_master, master_password
+            )
+        except (ValueError, KeyError, TypeError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to decrypt device key: {e}",
+            ) from e
+
     config_response = await config_service.generate_device_config(
         device=device,
         device_private_key=device_private_key,
         format_type=format_type,
         platform=platform,
+        device_dek=device_dek,
     )
 
     actor = get_client_actor(request)

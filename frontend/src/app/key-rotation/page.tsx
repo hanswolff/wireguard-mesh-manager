@@ -38,6 +38,7 @@ import apiClient, {
   type KeyRotationStatus,
 } from '@/lib/api-client';
 import { getErrorMessage, isUnauthorizedError } from '@/lib/error-handler';
+import { clearMasterSessionToken } from '@/lib/auth';
 
 export default function KeyRotationPage() {
   const [estimate, setEstimate] = useState<KeyRotationEstimate | null>(null);
@@ -53,8 +54,10 @@ export default function KeyRotationPage() {
   const [pendingRotation, setPendingRotation] =
     useState<MasterPasswordRotate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [postRotationUnlockMessage, setPostRotationUnlockMessage] =
+    useState<string | null>(null);
 
-  const { requireUnlock, isUnlocked } = useUnlock();
+  const { requireUnlock, isUnlocked, forceLock } = useUnlock();
 
   const form = useForm<MasterPasswordRotate>({
     resolver: zodResolver(MasterPasswordRotateSchema),
@@ -147,13 +150,28 @@ export default function KeyRotationPage() {
       setRotationResult(result);
 
       if (result.failed_devices === 0) {
-        toast({
-          title: 'Success',
-          description: `Successfully rotated master password for ${result.rotated_devices} devices`,
-        });
         form.reset();
         setIsNewPasswordValid(false);
         setPendingRotation(null);
+
+        // If session was invalidated, logout and prompt for new password
+        if (result.session_invalidated) {
+          clearMasterSessionToken();
+          forceLock();
+          setPostRotationUnlockMessage(
+            'Your master password has been rotated. Please unlock with your new password to continue.'
+          );
+          setShowUnlockModal(true);
+          toast({
+            title: 'Success',
+            description: `Successfully rotated master password for ${result.rotated_devices} devices. Please unlock with your new password.`,
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: `Successfully rotated master password for ${result.rotated_devices} devices`,
+          });
+        }
       } else {
         toast({
           title: 'Partial Success',
@@ -455,10 +473,18 @@ export default function KeyRotationPage() {
         onClose={() => {
           setShowUnlockModal(false);
           setPendingRotation(null);
+          setPostRotationUnlockMessage(null);
         }}
         onSuccess={handleUnlockSuccess}
-        title="Master Password Required for Key Rotation"
-        description="Enter the master password to unlock key rotation capabilities. This is required to decrypt and re-encrypt all stored private keys."
+        title={
+          postRotationUnlockMessage
+            ? 'Unlock with New Password'
+            : 'Master Password Required for Key Rotation'
+        }
+        description={
+          postRotationUnlockMessage ||
+          'Enter the master password to unlock key rotation capabilities. This is required to decrypt and re-encrypt all stored private keys.'
+        }
       />
     </div>
   );

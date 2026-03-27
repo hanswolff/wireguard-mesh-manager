@@ -107,6 +107,7 @@ async def test_admin_config_allows_master_session(
         device_private_key: str,
         format_type: str = "wg",
         platform: str | None = None,
+        device_dek: str | None = None,
     ):
         return DeviceConfigResponse(
             device_id=device.id,

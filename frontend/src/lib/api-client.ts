@@ -307,6 +307,7 @@ export const KeyRotationStatusSchema = z.object({
   failed_networks: z.number(),
   failed_devices: z.number(),
   errors: z.array(z.string()),
+  session_invalidated: z.boolean().default(false),
 });
 
 export const KeyRotationEstimateSchema = z.object({
@@ -886,6 +887,7 @@ export class WireGuardApiClient {
     if (!response.ok) {
       const errorText = await response.text();
       const isUnauthorized = response.status === 401;
+      const isLocked = response.status === 423;
       const isUnprocessableEntity = response.status === 422;
       const isRateLimit = response.status === 429;
       const isServerError = response.status >= 500 && response.status < 600;
@@ -961,12 +963,24 @@ export class WireGuardApiClient {
 
       const error = new Error(
         `API request failed: ${response.status}`
-      ) as Error & { status?: number; isUnauthorized?: boolean; data?: ApiErrorDetails; fieldErrors?: FieldErrorMap; retryAfter?: number };
+      ) as Error & { status?: number; isUnauthorized?: boolean; isLocked?: boolean; data?: ApiErrorDetails; fieldErrors?: FieldErrorMap; retryAfter?: number };
 
       error.status = response.status;
 
       if (isUnauthorized) {
         error.isUnauthorized = true;
+      }
+
+      if (isLocked) {
+        error.isLocked = true;
+      }
+
+      if (isUnauthorized) {
+        error.isUnauthorized = true;
+      }
+
+      if (isLocked) {
+        error.isLocked = true;
       }
 
       if (isRateLimit) {

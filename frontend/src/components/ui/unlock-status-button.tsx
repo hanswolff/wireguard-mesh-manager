@@ -5,14 +5,8 @@ import { Button } from '@/components/ui/button';
 import { TimerBadge } from '@/components/ui/timer-badge';
 import { useUnlock } from '@/contexts/unlock-context';
 
-interface UnlockStatusButtonProps {
-  onShowUnlockModal: () => void;
-}
-
-export function UnlockStatusButton({
-  onShowUnlockModal,
-}: UnlockStatusButtonProps) {
-  const { isUnlocked, isChecking, status, lock } = useUnlock();
+export function UnlockStatusButton() {
+  const { isUnlocked, isChecking, status, lock, showUnlockModal } = useUnlock();
 
   if (isChecking) {
     return null;
@@ -38,7 +32,7 @@ export function UnlockStatusButton({
       variant="outline"
       size="sm"
       className="h-8 text-xs"
-      onClick={onShowUnlockModal}
+      onClick={() => showUnlockModal()}
     >
       <Lock className="h-3 w-3 mr-1 text-muted-foreground" />
       Locked

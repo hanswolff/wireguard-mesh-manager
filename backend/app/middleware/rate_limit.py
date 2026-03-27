@@ -10,7 +10,8 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Request, Response, status
+from fastapi.responses import JSONResponse
 from redis import asyncio as redis_asyncio  # type: ignore[import-untyped]
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -290,7 +291,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "IP_RATE_LIMIT",
                     f"IP address blocked for {self.ip_window} seconds",
                 )
-                raise self._create_rate_limit_error(
+                return self._create_rate_limit_response(
                     ip_result.retry_after,
                     self.ip_max_requests,
                     self.ip_window,
@@ -321,7 +322,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     "API_KEY_RATE_LIMIT",
                     f"API key rate limit exceeded: {self.api_key_max_requests}/{self.api_key_window}",
                 )
-                raise self._create_rate_limit_error(
+                return self._create_rate_limit_response(
                     api_key_result.retry_after,
                     self.api_key_max_requests,
                     self.api_key_window,
@@ -358,17 +359,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
         return any(path.startswith(prefix) for prefix in skip_prefixes)
 
-    def _create_rate_limit_error(
+    def _create_rate_limit_response(
         self,
         retry_after: float,
         limit: int,
         window: int,
         detail: str,
         remaining: int = 0,
-    ) -> HTTPException:
-        return HTTPException(
+    ) -> JSONResponse:
+        return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=detail,
+            content={"detail": detail},
             headers={
                 "Retry-After": str(int(retry_after)),
                 "X-RateLimit-Limit": str(limit),

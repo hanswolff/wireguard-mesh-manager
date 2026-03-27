@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 
-from app.database.models import Device, DevicePeerLink
+from app.database.models import Device, DevicePeerLink, Location, WireGuardNetwork
 from app.schemas.key_rotation import KeyRotationStatus
 from app.utils.key_management import (
     decrypt_device_dek_from_json,
@@ -107,8 +107,10 @@ class KeyRotationService:
             devices, current_password, new_password, status
         )
         await self._rotate_peer_link_keys(current_password, new_password)
+        await self._rotate_network_keys(current_password, new_password, status)
+        await self._rotate_location_keys(current_password, new_password, status)
 
-        if status.rotated_devices > 0:
+        if status.rotated_devices > 0 or status.rotated_networks > 0 or status.rotated_locations > 0:
             await self.db.commit()
         else:
             await self.db.rollback()
@@ -126,6 +128,61 @@ class KeyRotationService:
         stmt = select(DevicePeerLink)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def _get_all_networks(self) -> list[WireGuardNetwork]:
+        """Get all networks."""
+        stmt = select(WireGuardNetwork)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def _get_all_locations(self) -> list[Location]:
+        """Get all locations."""
+        stmt = select(Location)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def _rotate_network_keys(
+        self, current_password: str, new_password: str, status: KeyRotationStatus
+    ) -> None:
+        """Rotate preshared keys stored on networks."""
+        networks = await self._get_all_networks()
+        status.total_networks = len(networks)
+        for network in networks:
+            if not network.preshared_key_encrypted:
+                continue
+            try:
+                preshared_key = decrypt_preshared_key_from_json(
+                    network.preshared_key_encrypted, current_password
+                )
+                if preshared_key:
+                    encrypted_psk = encrypt_preshared_key(preshared_key, new_password)
+                    if encrypted_psk:
+                        network.preshared_key_encrypted = encrypted_psk
+                        status.rotated_networks += 1
+            except (ValueError, KeyError, TypeError) as e:
+                status.failed_networks += 1
+                status.errors.append(f"Network '{network.name}': {str(e)}")
+
+    async def _rotate_location_keys(
+        self, current_password: str, new_password: str, status: KeyRotationStatus
+    ) -> None:
+        """Rotate preshared keys stored on locations."""
+        locations = await self._get_all_locations()
+        for location in locations:
+            if not location.preshared_key_encrypted:
+                continue
+            try:
+                preshared_key = decrypt_preshared_key_from_json(
+                    location.preshared_key_encrypted, current_password
+                )
+                if preshared_key:
+                    encrypted_psk = encrypt_preshared_key(preshared_key, new_password)
+                    if encrypted_psk:
+                        location.preshared_key_encrypted = encrypted_psk
+                        status.rotated_locations += 1
+            except (ValueError, KeyError, TypeError) as e:
+                status.failed_locations += 1
+                status.errors.append(f"Location '{location.name}': {str(e)}")
 
     async def _rotate_device_keys_batch(
         self,

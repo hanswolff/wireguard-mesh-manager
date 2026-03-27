@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.database.connection import get_db
 from app.middleware.auth import require_master_session
@@ -15,6 +15,8 @@ from app.schemas.key_rotation import (
     PasswordValidationResponse,
 )
 from app.services.key_rotation import KeyRotationService
+from app.services.master_password import master_password_cache, session_manager
+from app.services.master_session import master_session_manager
 from app.utils.password_policy import PasswordPolicy
 
 if TYPE_CHECKING:
@@ -32,6 +34,7 @@ def get_key_rotation_service(db: AsyncSession = Depends(get_db)) -> KeyRotationS
 
 @router.post("/rotate", response_model=KeyRotationStatus)
 async def rotate_master_password(
+    request: Request,
     rotate_data: MasterPasswordRotate,
     _: None = Depends(require_master_session),
     service: KeyRotationService = Depends(get_key_rotation_service),
@@ -78,6 +81,15 @@ async def rotate_master_password(
                     "status": result.dict(),
                 },
             )
+
+        # After successful rotation, invalidate all sessions and caches
+        # The old cached password is no longer valid
+        master_password_cache.lock()
+        session_manager.remove_session(request.state.master_session.session_id)
+        master_session_manager.remove_session(request.state.master_session.session_id)
+
+        # Mark session as invalidated so frontend knows to logout
+        result.session_invalidated = True
 
         return result
 

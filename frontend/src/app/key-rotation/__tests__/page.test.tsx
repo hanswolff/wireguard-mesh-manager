@@ -100,6 +100,7 @@ describe('KeyRotationPage', () => {
       failed_networks: 0,
       failed_devices: 0,
       errors: [],
+      session_invalidated: true,
     });
   });
 
@@ -157,6 +158,7 @@ describe('KeyRotationPage', () => {
       failed_networks: 0,
       failed_devices: 0,
       errors: [],
+      session_invalidated: true,
     });
   });
 
@@ -289,12 +291,12 @@ describe('KeyRotationPage', () => {
       });
     });
 
-    // Check success toast was shown
+    // Check success toast was shown (with session invalidation message)
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledWith({
         title: 'Success',
         description:
-          'Successfully rotated master password for 5 devices',
+          'Successfully rotated master password for 5 devices. Please unlock with your new password.',
       });
     });
 
@@ -399,6 +401,7 @@ describe('KeyRotationPage', () => {
         'Network "test-network" failed to rotate',
         'Device "test-device" failed to rotate',
       ],
+      session_invalidated: false,
     });
 
     renderWithProvider(<KeyRotationPage />);

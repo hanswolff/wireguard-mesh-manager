@@ -162,6 +162,7 @@ export default function DeviceForm({
   const [isLoadingPrivateKey, setIsLoadingPrivateKey] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [pendingPrivateKeyLoad, setPendingPrivateKeyLoad] = useState(false);
+  const [pendingKeyGeneration, setPendingKeyGeneration] = useState(false);
   const [showPrivateKeyField, setShowPrivateKeyField] = useState(
     mode === 'create'
   );
@@ -407,7 +408,7 @@ export default function DeviceForm({
     }
   };
 
-  const handleGenerateKeys = async () => {
+  const doGenerateKeys = useCallback(async () => {
     setIsGeneratingKeys(true);
     try {
       // Try CLI method first
@@ -437,7 +438,19 @@ export default function DeviceForm({
     } finally {
       setIsGeneratingKeys(false);
     }
-  };
+  }, [form]);
+
+  const handleGenerateKeys = useCallback(() => {
+    // Require unlock before generating keys since saving them requires master password
+    const unlocked = requireUnlock(() => {
+      void doGenerateKeys();
+    });
+
+    if (!unlocked) {
+      setPendingKeyGeneration(true);
+      setShowUnlockModal(true);
+    }
+  }, [requireUnlock, doGenerateKeys]);
 
   const handleGeneratePresharedKey = async () => {
     try {
@@ -543,7 +556,11 @@ export default function DeviceForm({
       setPendingPrivateKeyLoad(false);
       void loadPrivateKey();
     }
-  }, [pendingPrivateKeyLoad, loadPrivateKey]);
+    if (pendingKeyGeneration) {
+      setPendingKeyGeneration(false);
+      void doGenerateKeys();
+    }
+  }, [pendingPrivateKeyLoad, loadPrivateKey, pendingKeyGeneration, doGenerateKeys]);
 
   const title = mode === 'create' ? 'Add New Device' : 'Edit Device';
   const description =
