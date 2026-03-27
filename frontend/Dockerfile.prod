@@ -18,18 +18,18 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package manager manifests
+COPY package.json pnpm-lock.yaml ./
 
 # Install all dependencies (dev dependencies needed for build)
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --include=dev && npm cache clean --force
+RUN --mount=type=cache,target=/root/.pnpm-store \
+    corepack enable && pnpm install --frozen-lockfile --prod=false
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production

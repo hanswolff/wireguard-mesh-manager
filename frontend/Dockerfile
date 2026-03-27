@@ -26,18 +26,18 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # Set work directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package manager manifests
+COPY package.json pnpm-lock.yaml ./
 
-# Install all dependencies
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci && npm cache clean --force
+# Install dependencies with pnpm (including dev deps needed for build)
+RUN --mount=type=cache,target=/root/.pnpm-store \
+    corepack enable && pnpm install --frozen-lockfile --prod=false
 
 # Copy source code
 COPY . .
 
 # Build the production bundle
-RUN npm run build
+RUN pnpm run build
 
 # Runtime image
 FROM node:20-slim AS production
@@ -65,7 +65,7 @@ WORKDIR /app
 # Copy built assets
 COPY --from=builder --chown=wmm:wmm /app/.next ./.next
 COPY --from=builder --chown=wmm:wmm /app/node_modules ./node_modules
-COPY --from=builder --chown=wmm:wmm /app/package*.json ./
+COPY --from=builder --chown=wmm:wmm /app/package.json ./
 COPY --from=builder --chown=wmm:wmm /app/public ./public
 
 USER wmm
@@ -77,4 +77,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000 || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "run", "start"]
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
